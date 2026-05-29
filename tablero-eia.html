@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Dashboard EIA — ADCOM</title>
+<link rel="icon" type="image/x-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAABmJLR0QA/wD/AP+gvaeTAAAAB3RJTUUH6AUcDTIW9a+9dgAABB5JREFUWMPtl01IVFEUx3/3vRlnxo+ZnGkspSwpKqIoIoqIIoIooog2UVBBm6IootpEQQVtiqKIKqKIIoII+oAiKIqIIor6oIiKqKIoKqKoqKIoKqKoKKKoKKKoqKIoKqKoKKKoKKKoKKKoKKKoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKIoKKI=">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --black:#0A0A0A;--white:#FFFFFF;--yellow:#FFC000;
+  --gray-50:#F8F8F8;--gray-100:#F0F0F0;--gray-200:#E0E0E0;--gray-400:#9E9E9E;--gray-600:#555;
+  --pre:#1877F2;--pos:#7C3AED;--brand:#D97706;--evento:#059669;
+  --fb:#1877F2;--go:#EA4335;--r-sm:8px;--r-md:16px;--sidebar:220px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Poppins',sans-serif;background:var(--gray-50);color:var(--black);display:flex;min-height:100vh;font-size:13px;overflow-x:hidden}
+
+/* ─── SIDEBAR ─── */
+.sidebar{width:var(--sidebar);min-height:100vh;background:var(--black);position:fixed;top:0;left:0;display:flex;flex-direction:column;z-index:100;overflow-y:auto}
+.sidebar-logo{padding:20px 18px 16px;border-bottom:1px solid #1e1e1e;display:flex;align-items:center;gap:10px}
+.sidebar-logo img{height:30px;width:auto}
+.logo-cliente{font-size:10px;font-weight:700;color:var(--yellow);text-transform:uppercase;letter-spacing:.12em;margin-top:2px}
+.sidebar-nav{padding:12px 0;flex:1}
+.nav-label{font-size:9px;font-weight:700;color:#333;text-transform:uppercase;letter-spacing:.12em;padding:8px 18px 4px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 18px;cursor:pointer;color:#666;font-size:12px;font-weight:500;border-left:3px solid transparent;transition:all .15s}
+.nav-item:hover{color:#ccc;background:#111}
+.nav-item.active{color:var(--white);border-left-color:var(--yellow);background:#111}
+.nav-item svg{width:14px;height:14px;flex-shrink:0}
+.nav-tab-header{padding:6px 18px 3px;margin-top:6px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;border-top:1px solid #1e1e1e}
+.nav-tab-header.pre-color{color:var(--pre)}
+.nav-tab-header.pos-color{color:var(--pos)}
+.sidebar-bottom{padding:14px;border-top:1px solid #1e1e1e}
+.btn-refresh{width:100%;background:transparent;color:#666;font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;padding:8px;border:1px solid #2a2a2a;border-radius:var(--r-sm);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s}
+.btn-refresh:hover{color:var(--white);border-color:#555}
+.last-update{font-size:9px;color:#333;text-align:center;margin-top:6px}
+
+/* ─── MAIN ─── */
+.main{margin-left:var(--sidebar);flex:1;display:flex;flex-direction:column;min-width:0;overflow-x:hidden}
+
+/* ─── TOPBAR ─── */
+.topbar{background:var(--white);border-bottom:2px solid var(--gray-200);padding:0 28px;position:sticky;top:0;z-index:50}
+.topbar-top{display:flex;align-items:center;justify-content:space-between;padding:14px 0 10px}
+.topbar-title{font-size:15px;font-weight:800}
+.topbar-badge{font-size:10px;font-weight:700;color:#666;background:var(--gray-50);padding:5px 12px;border-radius:20px;border:1px solid var(--gray-200)}
+.topbar-filters{display:flex;align-items:center;gap:8px;padding:0 0 12px;flex-wrap:wrap}
+.topbar-filters label{font-size:10px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.08em;margin-right:2px}
+.tf-group{display:flex;align-items:center;gap:6px;background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--r-sm);padding:4px 10px}
+.tf-select,.tf-input{background:transparent;border:none;font-family:'Poppins',sans-serif;font-size:12px;font-weight:600;color:var(--black);outline:none;cursor:pointer;padding:2px 0}
+.tf-input{width:95px}
+.tf-sep{color:#ccc;font-weight:300;font-size:16px}
+.period-tag{font-size:11px;font-weight:600;color:#92400E;background:#FEF3C7;border:1px solid #FDE68A;padding:4px 12px;border-radius:20px}
+.btn-apply{background:var(--yellow);color:var(--black);font-family:'Poppins',sans-serif;font-size:11px;font-weight:800;padding:7px 18px;border:none;border-radius:var(--r-sm);cursor:pointer}
+.btn-apply:hover{opacity:.85}
+.btn-reset{background:transparent;color:#999;font-family:'Poppins',sans-serif;font-size:11px;font-weight:600;padding:7px 12px;border:1px solid var(--gray-200);border-radius:var(--r-sm);cursor:pointer}
+.loading-bar{height:3px;background:var(--gray-200);overflow:hidden}
+.loading-bar.active::after{content:'';display:block;height:100%;width:40%;background:var(--yellow);animation:ldbar 1s ease-in-out infinite}
+@keyframes ldbar{0%{margin-left:-40%}100%{margin-left:100%}}
+
+/* ─── TABS ─── */
+.tab-bar{display:flex;gap:0;border-bottom:2px solid var(--gray-200);background:var(--white);padding:0 28px;position:sticky;top:72px;z-index:40}
+.tab-btn{padding:12px 20px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;background:none;border:none;cursor:pointer;color:#aaa;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;display:flex;align-items:center;gap:6px}
+.tab-btn.active{color:var(--black);border-bottom-color:var(--yellow)}
+.tab-btn:hover:not(.active){color:#666}
+.tab-btn .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* ─── CONTENT ─── */
+.content{padding:24px 28px;min-width:0}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ─── SECTIONS ─── */
+.section{margin-bottom:32px;opacity:0;transform:translateY(16px);transition:all .4s ease}
+.section.visible{opacity:1;transform:none}
+.section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#aaa;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.section-title::after{content:'';flex:1;height:1px;background:var(--gray-200)}
+
+/* ─── KPI GRID ─── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.kpi-grid-6{grid-template-columns:repeat(6,1fr)}
+@media(max-width:1300px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+.kpi-card{background:var(--white);border-radius:var(--r-md);padding:16px 18px;border:1px solid var(--gray-200)}
+.kpi-card.accent{border-top:3px solid var(--yellow)}
+.kpi-card.accent-pre{border-top:3px solid var(--pre)}
+.kpi-card.accent-pos{border-top:3px solid var(--pos)}
+.kpi-card.accent-brand{border-top:3px solid var(--brand)}
+.kpi-card.accent-evento{border-top:3px solid var(--evento)}
+.kpi-label{font-size:9px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.kpi-value{font-size:19px;font-weight:800;line-height:1.2;word-break:break-all}
+.kpi-sub{font-size:10px;color:#aaa;margin-top:3px}
+.kpi-bar-wrap{margin-top:8px}
+.kpi-bar-label{display:flex;justify-content:space-between;font-size:9px;color:#aaa;margin-bottom:3px}
+.kpi-bar-label span:last-child{font-weight:700;color:#555}
+.kpi-bar{height:4px;background:var(--gray-100);border-radius:2px;overflow:hidden}
+.kpi-bar-fill{height:100%;border-radius:2px;transition:width .6s ease}
+.fill-pre{background:var(--pre)}.fill-pos{background:var(--pos)}.fill-yellow{background:var(--yellow)}.fill-brand{background:var(--brand)}
+
+/* ─── CANAL CARDS ─── */
+.canal-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:20px}
+.canal-card{background:var(--white);border-radius:var(--r-md);border:1px solid var(--gray-200);overflow:hidden}
+.canal-header{padding:12px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--gray-100)}
+.canal-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;color:var(--white);flex-shrink:0}
+.canal-name{font-size:12px;font-weight:700}
+.canal-body{padding:12px 14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.c-label{font-size:9px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.05em}
+.c-value{font-size:13px;font-weight:700;margin-top:1px}
+.c-value.yellow{color:#B8860B}
+.canal-footer{padding:10px 14px;background:var(--gray-50);border-top:1px solid var(--gray-100);display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.cf-label{font-size:9px;color:#aaa;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.cf-value{font-size:12px;font-weight:700;margin-top:2px}
+
+/* ─── CHARTS ─── */
+.charts-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+@media(max-width:1300px){.charts-grid{grid-template-columns:1fr}}
+.chart-card{background:var(--white);border-radius:var(--r-md);border:1px solid var(--gray-200);padding:16px 18px}
+.chart-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#aaa;margin-bottom:12px}
+.chart-canvas{position:relative;height:170px}
+
+/* ─── TABLES ─── */
+.table-wrap{background:var(--white);border-radius:var(--r-md);border:1px solid var(--gray-200);overflow:hidden;margin-bottom:16px}
+.table-header{padding:13px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--gray-100)}
+.table-title{font-size:13px;font-weight:700}
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--gray-50);border-bottom:2px solid var(--gray-200)}
+th{padding:9px 11px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#888;white-space:nowrap}
+th.num{text-align:right}
+td{padding:8px 11px;border-bottom:1px solid var(--gray-100);font-size:12px}
+td.num{text-align:right;font-variant-numeric:tabular-nums;font-weight:500;white-space:nowrap}
+td.bold{font-weight:700}
+tr:hover td{background:#FAFAFA}
+tr.total-row td{background:var(--black);color:var(--white);font-weight:700;border-bottom:none;font-size:12px}
+tr.total-row td.yellow{color:var(--yellow)}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:var(--black)}
+th.sort-active{color:var(--black)!important}
+
+/* ─── FUENTE BADGE ─── */
+.badge-pauta{display:inline-block;padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700;text-transform:uppercase;background:#DBEAFE;color:#1E40AF}
+.badge-org{display:inline-block;padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700;text-transform:uppercase;background:#D1FAE5;color:#065F46}
+.badge-total{display:inline-block;padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700;text-transform:uppercase;background:#F1F5F9;color:#475569}
+
+/* ─── SEARCH ─── */
+.prog-search{width:100%;max-width:320px;background:var(--white);border:1px solid var(--gray-200);font-family:'Poppins',sans-serif;font-size:12px;padding:8px 12px;border-radius:var(--r-sm);outline:none;margin-bottom:14px}
+.prog-search:focus{border-color:var(--yellow)}
+
+/* ─── LOADER ─── */
+#loader{position:fixed;inset:0;background:rgba(10,10,10,.95);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.loader-sub{font-size:12px;color:#555}
+.spinner{width:32px;height:32px;border:3px solid #222;border-top-color:var(--yellow);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div id="loader">
+  <div class="spinner"></div>
+  <div class="loader-sub" id="loader-msg">Cargando datos EIA...</div>
+</div>
+
+<!-- ─── SIDEBAR ─── -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div>
+      <div style="font-size:13px;font-weight:900;color:var(--yellow);letter-spacing:.05em">ADCOM</div>
+      <div class="logo-cliente">EIA · Dashboard</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-label">Pestañas</div>
+    <div class="nav-item active" id="nav-tab-pre" onclick="switchTab('pre',this)">
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="5" height="5" rx="1"/><rect x="8" y="1" width="5" height="5" rx="1"/><rect x="1" y="8" width="5" height="5" rx="1"/><rect x="8" y="8" width="5" height="5" rx="1"/></svg>
+      Pregrado
+    </div>
+    <div class="nav-item" id="nav-tab-pos" onclick="switchTab('pos',this)">
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="5" r="3"/><path d="M1 13c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
+      Posgrado
+    </div>
+    <div class="nav-label" style="margin-top:8px">Secciones</div>
+    <div id="sec-links"></div>
+  </nav>
+  <div class="sidebar-bottom">
+    <button class="btn-refresh" onclick="refreshData()">
+      <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 6A4 4 0 1 1 6 2M10 2v4H6"/></svg>
+      Actualizar
+    </button>
+    <div class="last-update" id="last-update">—</div>
+  </div>
+</aside>
+
+<!-- ─── MAIN ─── -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-top">
+      <div>
+        <div class="topbar-title" id="topbar-title">Universidad EIA — Pregrado</div>
+        <div style="margin-top:4px"><span class="period-tag" id="period-tag">Cargando...</span></div>
+      </div>
+      <span class="topbar-badge">META + GOOGLE</span>
+    </div>
+    <div class="topbar-filters">
+      <div class="tf-group">
+        <label>Desde</label>
+        <input class="tf-input" type="date" id="f-desde">
+        <span class="tf-sep">→</span>
+        <input class="tf-input" type="date" id="f-hasta">
+      </div>
+      <div class="tf-group">
+        <label>Canal</label>
+        <select class="tf-select" id="f-medio">
+          <option value="">Todos</option>
+          <option value="Facebook">Meta</option>
+          <option value="Google">Google</option>
+        </select>
+      </div>
+      <button class="btn-apply" onclick="applyFilters()">Aplicar</button>
+      <button class="btn-reset" onclick="resetFilters()">Limpiar</button>
+    </div>
+  </div>
+  <div class="loading-bar" id="loading-bar"></div>
+
+  <!-- ─── TAB PREGRADO ─── -->
+  <div class="tab-panel active" id="tab-pre">
+    <div class="content">
+      <div class="section visible" id="pre-s1">
+        <div class="section-title">Resumen General — Pregrado</div>
+        <div class="kpi-grid" id="pre-kpi-main"></div>
+        <div class="charts-grid" id="pre-charts-wrap">
+          <div class="chart-card"><div class="chart-title">Inversión diaria</div><div class="chart-canvas"><canvas id="pre-chart-inv"></canvas></div></div>
+          <div class="chart-card"><div class="chart-title">Leads CRM por día</div><div class="chart-canvas"><canvas id="pre-chart-leads"></canvas></div></div>
+          <div class="chart-card"><div class="chart-title">CPL CRM por día</div><div class="chart-canvas"><canvas id="pre-chart-cpl"></canvas></div></div>
+        </div>
+      </div>
+      <div class="section" id="pre-s2">
+        <div class="section-title">Rendimiento por Canal</div>
+        <div class="canal-grid" id="pre-canal-grid"></div>
+      </div>
+      <div class="section" id="pre-s3">
+        <div class="section-title">KPIs vs Metas — Programas Pregrado</div>
+        <div class="kpi-grid" id="pre-metas-summary" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px"></div>
+        <div class="table-wrap">
+          <div class="table-header"><div class="table-title">Meta por programa</div></div>
+          <div class="table-scroll" id="pre-metas-table"></div>
+        </div>
+      </div>
+      <div class="section" id="pre-s4">
+        <div class="section-title">Leads por Programa — Pauta vs Orgánico</div>
+        <input class="prog-search" type="text" id="pre-prog-search" placeholder="🔍 Buscar programa..." oninput="renderPreProgTable()">
+        <div class="table-wrap">
+          <div class="table-header"><div class="table-title">Programas Pregrado · Pauta + Orgánico + Matrículas</div></div>
+          <div class="table-scroll" id="pre-prog-table"></div>
+        </div>
+      </div>
+      <div class="section" id="pre-s5">
+        <div class="section-title">Inversión Mes a Mes — Pregrado</div>
+        <div class="table-wrap">
+          <div class="table-header"><div class="table-title">Inversión mensual por canal</div></div>
+          <div class="table-scroll" id="pre-mes-table"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── TAB POSGRADO ─── -->
+  <div class="tab-panel" id="tab-pos">
+    <div class="content">
+      <div class="section visible" id="pos-s1">
+        <div class="section-title">Resumen General — Posgrado</div>
+        <div class="kpi-grid" id="pos-kpi-main"></div>
+        <div class="charts-grid">
+          <div class="chart-card"><div class="chart-title">Inversión diaria</div><div class="chart-canvas"><canvas id="pos-chart-inv"></canvas></div></div>
+          <div class="chart-card"><div class="chart-title">Leads CRM por día</div><div class="chart-canvas"><canvas id="pos-chart-leads"></canvas></div></div>
+          <div class="chart-card"><div class="chart-title">CPL CRM por día</div><div class="chart-canvas"><canvas id="pos-chart-cpl"></canvas></div></div>
+        </div>
+      </div>
+      <div class="section" id="pos-s2">
+        <div class="section-title">Rendimiento por Canal</div>
+        <div class="canal-grid" id="pos-canal-grid"></div>
+      </div>
+      <div class="section" id="pos-s3">
+        <div class="section-title">KPIs vs Metas — Programas Posgrado</div>
+        <div class="kpi-grid" id="pos-metas-summary" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px"></div>
+        <div class="table-wrap">
+          <div class="table-header"><div class="table-title">Meta por programa</div></div>
+          <div class="table-scroll" id="pos-metas-table"></div>
+        </div>
+      </div>
+      <div class="section" id="pos-s4">
+        <div class="section-title">Leads por Programa — Pauta vs Orgánico</div>
+        <input class="prog-search" type="text" id="pos-prog-search" placeholder="🔍 Buscar programa..." oninput="renderPosProgTable()">
+        <div class="table-wrap">
+          <div class="table-header"><div class="table-title">Programas Posgrado · Pauta + Orgánico + Matrículas</div></div>
+          <div class="table-scroll" id="pos-prog-table"></div>
+        </div>
+      </div>
+      <div class="section" id="pos-s5">
+        <div class="section-title">Inversión Mes a Mes — Posgrado</div>
+        <div class="table-wrap">
+          <div class="table-header"><div class="table-title">Inversión mensual por canal</div></div>
+          <div class="table-scroll" id="pos-mes-table"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// ── CONFIG ───────────────────────────────────────────────────────────────────
+const SHEET_ID = '1J862C3EvVo9XEBGq0nsfPjNRKD5kTqIEu8hZFWt4Aks';
+const URL_RG    = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=110278945`;
+const URL_MAT   = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=954833082`;
+const URL_LEADS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=381850908`;
+const URL_METAS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=1793435013`;
+
+let RAW_RG=[], RAW_MAT=[], RAW_LEADS=[], RAW_METAS=[];
+let currentTab = 'pre';
+const $=id=>document.getElementById(id);
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+const fmtCOP = n => (!n||isNaN(n)||n===0)?'—':'$'+Math.round(n).toLocaleString('es-CO');
+const fmtN   = n => (!n||isNaN(n))?'—':Math.round(n).toLocaleString('es-CO');
+const fmtP   = n => (n===null||isNaN(n))?'—':n.toFixed(1)+'%';
+
+function parseInv(v){
+  if(!v) return 0;
+  const s=String(v).replace(/[$\s\.]/g,'').replace(',','.');
+  return parseFloat(s)||0;
+}
+function parseFecha(v){
+  if(!v) return {full:'',mes:'',date:null};
+  if(v instanceof Date){
+    const y=v.getFullYear(), m=String(v.getMonth()+1).padStart(2,'0'), d=String(v.getDate()).padStart(2,'0');
+    return {full:y+'-'+m+'-'+d, mes:y+'-'+m, date:v};
+  }
+  const s=String(v).trim();
+  const m1=s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if(m1) return {full:m1[3]+'-'+m1[2]+'-'+m1[1], mes:m1[3]+'-'+m1[2], date:new Date(m1[3]+'-'+m1[2]+'-'+m1[1])};
+  const m2=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m2) return {full:m2[1]+'-'+m2[2]+'-'+m2[3], mes:m2[1]+'-'+m2[2], date:new Date(s)};
+  return {full:'',mes:'',date:null};
+}
+const MESES_ES=['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+function fmtMes(s){ const p=s.split('-'); return p.length<2?s:(MESES_ES[parseInt(p[1])]||p[1])+' '+p[0]; }
+
+// ── CARGA ────────────────────────────────────────────────────────────────────
+function refreshData(){
+  showLoading(true,'Cargando datos...');
+  let done=0; const TOTAL=4;
+  const safety=setTimeout(()=>{ processAndRender(); showLoading(false); },20000);
+  const check=()=>{ if(++done===TOTAL){ clearTimeout(safety); processAndRender(); showLoading(false); } };
+
+  const stripHeader=(data,pattern)=>{
+    if(!data.length) return data;
+    if(pattern.test(String(data[0][0]||''))) data.shift();
+    return data;
+  };
+
+  Papa.parse(URL_RG,{download:true,header:false,skipEmptyLines:true,
+    complete:r=>{ RAW_RG=r.data; stripHeader(RAW_RG,/date|fecha|camp/i); check(); },
+    error:()=>check()
+  });
+  Papa.parse(URL_MAT,{download:true,header:false,skipEmptyLines:true,
+    complete:r=>{ RAW_MAT=r.data; stripHeader(RAW_MAT,/id|nombre|admi/i); check(); },
+    error:()=>check()
+  });
+  Papa.parse(URL_LEADS,{download:true,header:false,skipEmptyLines:true,
+    complete:r=>{ RAW_LEADS=r.data; stripHeader(RAW_LEADS,/^id$/i); check(); },
+    error:()=>check()
+  });
+  Papa.parse(URL_METAS,{download:true,header:false,skipEmptyLines:true,
+    complete:r=>{ RAW_METAS=r.data; stripHeader(RAW_METAS,/periodo|fecha/i); check(); },
+    error:()=>check()
+  });
+}
+
+// ── PROCESAR ─────────────────────────────────────────────────────────────────
+function processAndRender(){
+  const fD=$('f-desde')?.value||'';
+  const fH=$('f-hasta')?.value||'';
+  const fM=$('f-medio')?.value||'';
+
+  // RESUMEN GENERAL: [0]Date [1]Periodo [2]Campaign [3]Amount [4]Registros [5]Medio [6]Modalidad [7]Programa
+  const rg = RAW_RG.map(r=>{
+    const f=parseFecha(r[0]);
+    return { fecha:f.full, mes:f.mes, medio:String(r[5]||'').trim(), modal:String(r[6]||'').trim(),
+             prog:String(r[7]||'').trim(), inv:parseInv(r[3]), leadsP:parseInt(r[4])||0 };
+  }).filter(r=>r.fecha);
+
+  const filterRG = r => {
+    if(fD && r.fecha < fD) return false;
+    if(fH && r.fecha > fH) return false;
+    if(fM && r.medio !== fM) return false;
+    return true;
+  };
+
+  // LEADS CRM: [0]Id [1]Fuente [2]Estado [3]HoraCreacion [4]Convertido [5]Detalle [6]Periodo [7]Programa [8]Tipo [9]LeadsPauta
+  const filterLeads = r => {
+    const f=parseFecha(r[3]).full;
+    if(fD && f < fD) return false;
+    if(fH && f > fH) return false;
+    return true;
+  };
+
+  // MAT: [0]Id [1]Nombre [2]Propietario [3]HoraCreacion ... [12]Fuente [35]Programa [38]Tipo [39]Matriculado [40]AdmNoMat [41]Inscrito
+  const filterMat = r => {
+    const f=parseFecha(r[3]).full;
+    if(fD && f < fD) return false;
+    if(fH && f > fH) return false;
+    return true;
+  };
+
+  // METAS: [0]Periodo [1]FechaIni [2]FechaFin [3]Modalidad [4]Programa [5]%prog [6]Presupuesto [7]CPL [8]Leads [9]%Conv [10]Matriculas [11]MetaMat
+  const getMetasForRange=(modal)=>{
+    const out={};
+    RAW_METAS.forEach(r=>{
+      if(String(r[3]||'').trim()!==modal) return;
+      const ini=parseFecha(r[1]).full;
+      const fin=parseFecha(r[2]).full;
+      const prog=String(r[4]||'').trim();
+      if(!prog) return;
+      const overlap = (!fD||!fin||(fD<=fin)) && (!fH||!ini||(fH>=ini));
+      if(!overlap) return;
+      if(!out[prog]) out[prog]={ppto:0,cpl:0,leads:0,mat_meta:0};
+      out[prog].ppto    += parseInv(r[6]);
+      out[prog].cpl     = parseInv(String(r[7]||'').replace('$','').replace('.','').replace(',','.'));
+      out[prog].leads   += parseInt(r[8])||0;
+      out[prog].mat_meta+= parseInt(r[11])||0;
+    });
+    return out;
+  };
+
+  window._state = { rg, filterRG, filterLeads, filterMat, getMetasForRange, fD, fH, fM };
+
+  const meses = [...new Set(rg.filter(filterRG).map(r=>r.mes))].sort();
+  const desde = fD||meses[0]||'—';
+  const hasta  = fH||meses[meses.length-1]||'—';
+  $('period-tag').textContent='📅 '+desde+' → '+hasta;
+  $('last-update').textContent='Act: '+new Date().toLocaleTimeString('es-CO');
+
+  renderTab('pre');
+  renderTab('pos');
+  revealSections();
+}
+
+// ── RENDER TAB ───────────────────────────────────────────────────────────────
+function renderTab(tab){
+  const {rg,filterRG,filterLeads,filterMat,getMetasForRange} = window._state||{};
+  if(!rg) return;
+
+  const modal = tab==='pre'?'Pregrado':'Posgrado';
+  const accentClass = tab==='pre'?'accent-pre':'accent-pos';
+  const fillClass = tab==='pre'?'fill-pre':'fill-pos';
+  const accentColor = tab==='pre'?'var(--pre)':'var(--pos)';
+
+  // Filtrar RG por tab + filtros globales
+  const rgTab = rg.filter(r=>r.modal===modal && filterRG(r));
+  // Añadir Branding/Evento a Pregrado en inversión total
+  const rgBrand = rg.filter(r=>(r.modal==='Branding'||r.modal==='Evento') && filterRG(r));
+  const invBrand = tab==='pre' ? rgBrand.reduce((a,r)=>a+r.inv,0) : 0;
+
+  const inv_total = rgTab.reduce((a,r)=>a+r.inv,0);
+  const leads_p   = rgTab.reduce((a,r)=>a+r.leadsP,0);
+
+  // Leads CRM (solo los del tipo correspondiente)
+  const leadsAll  = RAW_LEADS.filter(filterLeads).filter(r=>String(r[8]||'').trim()===modal);
+  const lPauta    = leadsAll.filter(r=>String(r[1]||'').trim()==='Pauta');
+  const lOrg      = leadsAll.filter(r=>String(r[1]||'').trim()==='Orgánico');
+
+  // Matrículas (solo Pauta y solo ese tipo)
+  const matAll  = RAW_MAT.filter(filterMat).filter(r=>String(r[38]||'').trim()===modal);
+  const matP    = matAll.filter(r=>String(r[12]||'').trim()==='Pauta');
+  const matOrg  = matAll.filter(r=>String(r[12]||'').trim()==='Orgánico');
+
+  const cpl_p  = lPauta.length ? inv_total/lPauta.length : 0;
+  const conv   = lPauta.length ? matP.length/lPauta.length*100 : 0;
+
+  // ─ KPI Principal ─
+  const kpis=[
+    {l:'Inversión Total',    v:fmtCOP(inv_total+invBrand), s: tab==='pre'?'Incluye Branding/Eventos':'Pauta digital',  cl:accentClass},
+    {l:'Leads Pauta CRM',    v:fmtN(lPauta.length),        s:'Fuente: Pauta',                                          cl:''},
+    {l:'CPL CRM — Pauta',    v:fmtCOP(cpl_p),              s:'Inversión / Leads pauta',                                cl:''},
+    {l:'Leads Orgánicos CRM',v:fmtN(lOrg.length),          s:'Fuente: Orgánico',                                       cl:''},
+    {l:'Total Leads CRM',    v:fmtN(leadsAll.length),       s:'Pauta + Orgánico',                                       cl:accentClass},
+    {l:'Inscrit. Pauta',     v:fmtN(matP.filter(r=>parseInt(r[41])||0).length), s:'Inscritos (col Inscrito)',           cl:''},
+    {l:'Admitid. Pauta',     v:fmtN(matP.filter(r=>parseInt(r[40])||0).length), s:'Admitidos no matriculados',          cl:''},
+    {l:'Conv. Lead→Inscrito',v:fmtP(conv),                 s:'Leads pauta CRM → Inscripciones',                        cl:''},
+  ];
+  $(tab+'-kpi-main').innerHTML = kpis.map(k=>
+    `<div class="kpi-card ${k.cl}"><div class="kpi-label">${k.l}</div><div class="kpi-value">${k.v}</div><div class="kpi-sub">${k.s}</div></div>`
+  ).join('');
+
+  // ─ Canal Cards ─
+  const canales=[
+    {key:'Facebook',label:'Meta / Facebook',bg:'#1877F2',icon:'FB'},
+    {key:'Google',  label:'Google Ads',     bg:'#EA4335',icon:'GO'},
+  ];
+  const canalesHTML = canales.map(c=>{
+    const rc   = rgTab.filter(r=>r.medio===c.key);
+    const inv  = rc.reduce((a,r)=>a+r.inv,0);
+    const lp   = rc.reduce((a,r)=>a+r.leadsP,0);
+    const lc_p = lPauta.filter(r=>/* all for now */ true).length; // will refine below
+    // Leads CRM por canal (BD LEADS no tiene canal directamente — usamos proporción de inv)
+    // En su lugar usamos leads pauta plataforma
+    const cpl  = lp ? inv/lp : 0;
+    return `<div class="canal-card">
+      <div class="canal-header">
+        <div class="canal-icon" style="background:${c.bg}">${c.icon}</div>
+        <div>
+          <div class="canal-name">${c.label}</div>
+          <div style="font-size:10px;color:#aaa">${rc.length} días con datos</div>
+        </div>
+      </div>
+      <div class="canal-body">
+        <div><div class="c-label">Inversión</div><div class="c-value">${fmtCOP(inv)}</div></div>
+        <div><div class="c-label">Leads Pauta</div><div class="c-value">${fmtN(lp)}</div></div>
+        <div><div class="c-label">CPL Pauta</div><div class="c-value yellow">${fmtCOP(cpl)}</div></div>
+      </div>
+      <div class="canal-footer">
+        <div><div class="cf-label">Part. Inversión</div><div class="cf-value">${inv_total?fmtP(inv/inv_total*100):'—'}</div></div>
+        <div><div class="cf-label">Part. Leads</div><div class="cf-value">${leads_p?fmtP(lp/leads_p*100):'—'}</div></div>
+        <div><div class="cf-label">Días activos</div><div class="cf-value">${[...new Set(rc.map(r=>r.fecha))].length}</div></div>
+      </div>
+    </div>`;
+  }).join('');
+  $(tab+'-canal-grid').innerHTML = canalesHTML;
+
+  // ─ Charts ─
+  buildDailyCharts(tab, rgTab, lPauta, filterLeads, modal, accentColor);
+
+  // ─ Metas ─
+  const metas = getMetasForRange(modal);
+  renderMetasSection(tab, metas, rgTab, lPauta, matP, accentClass, fillClass);
+
+  // ─ Tabla Programas ─
+  buildProgData(tab, modal, rgTab, leadsAll, lPauta, lOrg, matAll, matP, matOrg);
+  tab==='pre' ? renderPreProgTable() : renderPosProgTable();
+
+  // ─ Mes a Mes ─
+  renderMesTable(tab, rgTab, canales);
+}
+
+// ── CHARTS ───────────────────────────────────────────────────────────────────
+let _charts={};
+function buildDailyCharts(tab, rgTab, lPauta, filterLeads, modal, color){
+  const dailyInv={}, dailyLeads={};
+  rgTab.forEach(r=>{ if(!r.fecha) return; dailyInv[r.fecha]=(dailyInv[r.fecha]||0)+r.inv; });
+  RAW_LEADS.filter(filterLeads).filter(r=>String(r[8]||'').trim()===modal && String(r[1]||'').trim()==='Pauta')
+    .forEach(r=>{ const f=parseFecha(r[3]).full; if(!f) return; dailyLeads[f]=(dailyLeads[f]||0)+1; });
+
+  const days=[...new Set([...Object.keys(dailyInv),...Object.keys(dailyLeads)])].sort();
+  const labels=days.map(d=>{ const p=d.split('-'); return (p[2]||'')+'/'+(p[1]||''); });
+  const inv=days.map(d=>dailyInv[d]||0);
+  const lc=days.map(d=>dailyLeads[d]||0);
+  const cpl=days.map(d=>{ const i=dailyInv[d]||0, l=dailyLeads[d]||0; return l?Math.round(i/l):0; });
+
+  const mk=(id,label,data,clr,isCOP)=>{
+    const ctx=document.getElementById(id);
+    if(!ctx) return;
+    if(_charts[id]) _charts[id].destroy();
+    _charts[id]=new Chart(ctx,{
+      type:data.length>60?'line':'bar',
+      data:{labels,datasets:[{label,data,backgroundColor:clr+'33',borderColor:clr,borderWidth:2,borderRadius:3,tension:.3,fill:true,pointRadius:data.length>60?0:2}]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>isCOP?'$'+Math.round(c.raw).toLocaleString('es-CO'):c.raw}}},
+        scales:{x:{ticks:{font:{size:9},maxTicksLimit:12,color:'#aaa'},grid:{display:false}},
+                y:{ticks:{font:{size:9},color:'#aaa',callback:v=>isCOP?'$'+Math.round(v/1000)+'k':v},grid:{color:'#f0f0f0'}}}}
+    });
+  };
+  mk(tab+'-chart-inv',  'Inversión',  inv,  color, true);
+  mk(tab+'-chart-leads','Leads CRM',  lc,   '#059669',false);
+  mk(tab+'-chart-cpl',  'CPL CRM',    cpl,  '#D97706',true);
+}
+
+// ── METAS ────────────────────────────────────────────────────────────────────
+function renderMetasSection(tab, metas, rgTab, lPauta, matP, accentClass, fillClass){
+  const totalPpto  = Object.values(metas).reduce((a,m)=>a+m.ppto,0);
+  const totalLeads = Object.values(metas).reduce((a,m)=>a+m.leads,0);
+  const totalMat   = Object.values(metas).reduce((a,m)=>a+m.mat_meta,0);
+  const invReal    = rgTab.reduce((a,r)=>a+r.inv,0);
+  const pctInv     = totalPpto?invReal/totalPpto*100:null;
+  const pctLeads   = totalLeads?lPauta.length/totalLeads*100:null;
+  const pctMat     = totalMat?matP.filter(r=>parseInt(r[39])||parseInt(r[41])).length/totalMat*100:null;
+
+  const mkBar=(val,label,fill)=>{
+    if(val===null) return '';
+    const pct=Math.min(val,100);
+    const color=pct>=80?'#166534':pct>=50?'#92400E':'#888';
+    return `<div class="kpi-bar-wrap">
+      <div class="kpi-bar-label"><span>${label}</span><span style="color:${color}">${fmtP(val)}</span></div>
+      <div class="kpi-bar"><div class="kpi-bar-fill ${fill}" style="width:${pct}%"></div></div>
+    </div>`;
+  };
+
+  $(tab+'-metas-summary').innerHTML=[
+    {l:'Presupuesto Meta',v:fmtCOP(totalPpto),  s:'Total campana',cl:accentClass,bar:mkBar(pctInv,'Ejecución',fillClass)},
+    {l:'Leads Meta',      v:fmtN(totalLeads),   s:'Total programas',cl:'',bar:mkBar(pctLeads,'Cumplimiento',fillClass)},
+    {l:'Matrículas Meta', v:fmtN(totalMat),     s:'Total programas',cl:'',bar:mkBar(pctMat,'Cumplimiento',fillClass)},
+    {l:'Programas con Meta',v:String(Object.keys(metas).length),s:'Con presupuesto asignado',cl:'',bar:''},
+  ].map(k=>`<div class="kpi-card ${k.cl}">
+    <div class="kpi-label">${k.l}</div><div class="kpi-value">${k.v}</div><div class="kpi-sub">${k.s}</div>${k.bar}
+  </div>`).join('');
+
+  // Tabla de metas por programa
+  const progs=Object.keys(metas).sort();
+  const rows=progs.map(prog=>{
+    const m=metas[prog];
+    const invProg = rgTab.filter(r=>r.prog===prog).reduce((a,r)=>a+r.inv,0);
+    const lcProg  = lPauta.filter(r=>String(r[7]||'').trim()===prog).length;
+    const matProg = matP.filter(r=>String(r[35]||'').trim()===prog && (parseInt(r[39])||parseInt(r[41]))).length;
+    const pI=m.ppto?invProg/m.ppto*100:null;
+    const pL=m.leads?lcProg/m.leads*100:null;
+    const pM=m.mat_meta?matProg/m.mat_meta*100:null;
+    const pctCell=(v)=>{ if(v===null) return '<td class="num">⏳</td>'; const c=v>=80?'color:#166534':v>=50?'color:#92400E':'color:#aaa'; return `<td class="num" style="font-weight:700;${c}">${fmtP(v)}</td>`; };
+    return `<tr>
+      <td class="bold">${prog}</td>
+      <td class="num">${fmtCOP(m.ppto)}</td>
+      <td class="num">${fmtCOP(invProg)}</td>
+      ${pctCell(pI)}
+      <td class="num">${fmtN(m.leads)}</td>
+      <td class="num">${fmtN(lcProg)}</td>
+      ${pctCell(pL)}
+      <td class="num">${fmtN(m.mat_meta)}</td>
+      <td class="num">${fmtN(matProg)}</td>
+      ${pctCell(pM)}
+    </tr>`;
+  }).join('');
+  const totI=progs.reduce((a,p)=>a+(rgTab.filter(r=>r.prog===p).reduce((b,r)=>b+r.inv,0)),0);
+  const totLC=progs.reduce((a,p)=>a+lPauta.filter(r=>String(r[7]||'').trim()===p).length,0);
+  $(tab+'-metas-table').innerHTML=`<table>
+    <thead><tr>
+      <th>Programa</th>
+      <th class="num">Presup.</th><th class="num">Inv. Real</th><th class="num">% Ejec.</th>
+      <th class="num">Meta Leads</th><th class="num">Leads Reales</th><th class="num">% Leads</th>
+      <th class="num">Meta Mat.</th><th class="num">Matrículas</th><th class="num">% Mat.</th>
+    </tr></thead>
+    <tbody>${rows}
+    <tr class="total-row"><td>TOTAL</td>
+      <td class="num yellow">${fmtCOP(totalPpto)}</td><td class="num yellow">${fmtCOP(totI)}</td>
+      <td class="num yellow">${totalPpto?fmtP(totI/totalPpto*100):'—'}</td>
+      <td class="num yellow">${fmtN(totalLeads)}</td><td class="num yellow">${fmtN(totLC)}</td>
+      <td class="num yellow">${totalLeads?fmtP(totLC/totalLeads*100):'—'}</td>
+      <td class="num yellow">${fmtN(totalMat)}</td><td class="num yellow">—</td><td class="num yellow">—</td>
+    </tr></tbody>
+  </table>`;
+}
+
+// ── TABLA PROGRAMAS ───────────────────────────────────────────────────────────
+function buildProgData(tab, modal, rgTab, leadsAll, lPauta, lOrg, matAll, matP, matOrg){
+  const map={};
+  rgTab.forEach(r=>{
+    if(!r.prog) return;
+    if(!map[r.prog]) map[r.prog]={prog:r.prog, inv_total:0, inv_fb:0, inv_go:0, leads_p_rg:0};
+    map[r.prog].inv_total += r.inv;
+    if(r.medio==='Facebook') map[r.prog].inv_fb += r.inv;
+    if(r.medio==='Google')   map[r.prog].inv_go += r.inv;
+    map[r.prog].leads_p_rg += r.leadsP;
+  });
+  const data = Object.values(map).map(p=>{
+    const lp_crm = lPauta.filter(r=>String(r[7]||'').trim()===p.prog).length;
+    const lo_crm = lOrg.filter(r=>String(r[7]||'').trim()===p.prog).length;
+    const lt_crm = lp_crm + lo_crm;
+    const mp     = matP.filter(r=>String(r[35]||'').trim()===p.prog);
+    const mo     = matOrg.filter(r=>String(r[35]||'').trim()===p.prog);
+    const insc_p = mp.filter(r=>parseInt(r[41])||parseInt(r[39])).length;
+    const insc_o = mo.filter(r=>parseInt(r[41])||parseInt(r[39])).length;
+    const cpl    = lp_crm ? p.inv_total/lp_crm : 0;
+    const conv   = lp_crm ? insc_p/lp_crm*100 : 0;
+    return {...p, lp_crm, lo_crm, lt_crm, insc_p, insc_o, cpl, conv};
+  });
+  window['_prog_'+tab] = data;
+}
+
+const _progSort = { pre:{col:'inv_total',dir:-1}, pos:{col:'inv_total',dir:-1} };
+
+function sortProg(tab, col){
+  const s=_progSort[tab];
+  if(s.col===col) s.dir*=-1; else{s.col=col; s.dir=-1;}
+  tab==='pre'?renderPreProgTable():renderPosProgTable();
+}
+
+function renderProgTable(tab){
+  const data   = window['_prog_'+tab]||[];
+  const search = ($(`${tab}-prog-search`)?.value||'').toLowerCase();
+  const s      = _progSort[tab];
+  let rows     = data.filter(p=>!search||p.prog.toLowerCase().includes(search));
+  rows.sort((a,b)=>{
+    const av=a[s.col]||0, bv=b[s.col]||0;
+    return typeof av==='string'?av.localeCompare(bv)*s.dir:(av-bv)*s.dir;
+  });
+  const tI = rows.reduce((a,r)=>a+r.inv_total,0);
+  const tFB= rows.reduce((a,r)=>a+r.inv_fb,0);
+  const tGO= rows.reduce((a,r)=>a+r.inv_go,0);
+  const tLP= rows.reduce((a,r)=>a+r.lp_crm,0);
+  const tLO= rows.reduce((a,r)=>a+r.lo_crm,0);
+  const tLT= rows.reduce((a,r)=>a+r.lt_crm,0);
+  const tIP= rows.reduce((a,r)=>a+r.insc_p,0);
+  const tIO= rows.reduce((a,r)=>a+r.insc_o,0);
+
+  const th=(col,lbl,num,style)=>{
+    const act=s.col===col;
+    return `<th class="${num?'num ':''} sortable${act?' sort-active':''}" ${style?`style="${style}"`:''}
+      onclick="sortProg('${tab}','${col}')">${lbl}${act?(s.dir>0?' ↑':' ↓'):''}</th>`;
+  };
+
+  const tbody = rows.map(p=>{
+    const conv_color = p.conv>5?'color:#166534':p.conv>2?'color:#92400E':'color:#aaa';
+    return `<tr>
+      <td style="font-weight:600;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${p.prog}">${p.prog}</td>
+      <td class="num bold">${fmtCOP(p.inv_total)}</td>
+      <td class="num" style="color:var(--fb)">${fmtCOP(p.inv_fb)}</td>
+      <td class="num" style="color:var(--go)">${fmtCOP(p.inv_go)}</td>
+      <td class="num"><span class="badge-pauta">${fmtN(p.lp_crm)}</span></td>
+      <td class="num"><span class="badge-org">${fmtN(p.lo_crm)}</span></td>
+      <td class="num bold"><span class="badge-total">${fmtN(p.lt_crm)}</span></td>
+      <td class="num yellow">${fmtCOP(p.cpl)}</td>
+      <td class="num" style="color:var(--fb)">${fmtN(p.insc_p)}</td>
+      <td class="num" style="color:#059669">${fmtN(p.insc_o)}</td>
+      <td class="num" style="font-weight:700;${conv_color}">${fmtP(p.conv)}</td>
+    </tr>`;
+  }).join('');
+
+  $(`${tab}-prog-table`).innerHTML=`<table>
+    <thead><tr>
+      ${th('prog','Programa',false)}
+      ${th('inv_total','Inv. Total',true)}
+      ${th('inv_fb','Facebook',true,'color:var(--fb)')}
+      ${th('inv_go','Google',true,'color:var(--go)')}
+      ${th('lp_crm','Leads Pauta',true)}
+      ${th('lo_crm','Leads Org.',true)}
+      ${th('lt_crm','Total CRM',true)}
+      ${th('cpl','CPL Pauta',true)}
+      ${th('insc_p','Inscr. Pauta',true)}
+      ${th('insc_o','Inscr. Org.',true)}
+      ${th('conv','Conv%',true)}
+    </tr></thead>
+    <tbody>${tbody}
+    <tr class="total-row">
+      <td>TOTAL (${rows.length})</td>
+      <td class="num yellow">${fmtCOP(tI)}</td>
+      <td class="num yellow">${fmtCOP(tFB)}</td>
+      <td class="num yellow">${fmtCOP(tGO)}</td>
+      <td class="num yellow">${fmtN(tLP)}</td>
+      <td class="num yellow">${fmtN(tLO)}</td>
+      <td class="num yellow">${fmtN(tLT)}</td>
+      <td class="num yellow">${tLP?fmtCOP(tI/tLP):'—'}</td>
+      <td class="num yellow">${fmtN(tIP)}</td>
+      <td class="num yellow">${fmtN(tIO)}</td>
+      <td class="num yellow">${tLP?fmtP(tIP/tLP*100):'—'}</td>
+    </tr></tbody>
+  </table>`;
+}
+function renderPreProgTable(){ renderProgTable('pre'); }
+function renderPosProgTable(){ renderProgTable('pos'); }
+
+// ── MES A MES ─────────────────────────────────────────────────────────────────
+function renderMesTable(tab, rgTab, canales){
+  const map={};
+  rgTab.forEach(r=>{
+    if(!r.mes) return;
+    if(!map[r.mes]) map[r.mes]={};
+    canales.forEach(c=>{ if(!map[r.mes][c.key]) map[r.mes][c.key]=0; });
+    if(!map[r.mes][r.medio]) map[r.mes][r.medio]=0;
+    map[r.mes][r.medio]+=r.inv;
+  });
+  const meses=Object.keys(map).sort();
+  const totByCanal={};
+  canales.forEach(c=>totByCanal[c.key]=0);
+  const rows=meses.map(mes=>{
+    const mes_total=canales.reduce((a,c)=>{const v=map[mes][c.key]||0; totByCanal[c.key]+=v; return a+v; },0);
+    return `<tr><td class="bold">${fmtMes(mes)}</td>${canales.map(c=>`<td class="num">${fmtCOP(map[mes][c.key]||0)}</td>`).join('')}<td class="num bold">${fmtCOP(mes_total)}</td></tr>`;
+  }).join('');
+  const tot=canales.reduce((a,c)=>a+totByCanal[c.key],0);
+  $(`${tab}-mes-table`).innerHTML=`<table>
+    <thead><tr><th>Mes</th>${canales.map(c=>`<th class="num" style="color:${c.bg}">${c.label.split(' ')[0]}</th>`).join('')}<th class="num">Total</th></tr></thead>
+    <tbody>${rows}
+    <tr class="total-row"><td>TOTAL</td>${canales.map(c=>`<td class="num yellow">${fmtCOP(totByCanal[c.key])}</td>`).join('')}<td class="num yellow">${fmtCOP(tot)}</td></tr>
+    </tbody></table>`;
+}
+
+// ── TAB SWITCH ────────────────────────────────────────────────────────────────
+function switchTab(tab, el){
+  currentTab = tab;
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  $('tab-'+tab).classList.add('active');
+  document.querySelectorAll('.nav-item[id^="nav-tab"]').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+  const titles={pre:'Universidad EIA — Pregrado', pos:'Universidad EIA — Posgrado'};
+  $('topbar-title').textContent = titles[tab]||'EIA';
+  revealSections();
+}
+
+// ── FILTROS ───────────────────────────────────────────────────────────────────
+function applyFilters(){ processAndRender(); }
+function resetFilters(){
+  const h=new Date();
+  $('f-desde').value=h.getFullYear()+'-01-01';
+  $('f-hasta').value=h.getFullYear()+'-'+String(h.getMonth()+1).padStart(2,'0')+'-'+String(h.getDate()).padStart(2,'0');
+  $('f-medio').value='';
+  processAndRender();
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function revealSections(){
+  document.querySelectorAll('#tab-'+currentTab+' .section').forEach((el,i)=>{
+    el.classList.remove('visible');
+    setTimeout(()=>el.classList.add('visible'), i*80);
+  });
+}
+function showLoading(on, msg){
+  $('loading-bar').classList.toggle('active',on);
+  if(on && msg) $('loader-msg').textContent=msg;
+  if(!on) $('loader').style.display='none';
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded',()=>{
+  const h=new Date();
+  $('f-desde').value=h.getFullYear()+'-01-01';
+  $('f-hasta').value=h.getFullYear()+'-'+String(h.getMonth()+1).padStart(2,'0')+'-'+String(h.getDate()).padStart(2,'0');
+  refreshData();
+});
+</script>
+</body>
+</html>
