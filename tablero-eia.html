@@ -442,8 +442,13 @@ function parseFecha(v){
     return {full:`${y}-${m}-${d}`,mes:`${y}-${m}`,date:v};
   }
   const s=String(v).trim();
-  let m=s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
-  if(m) return {full:`${m[3]}-${m[2]}-${m[1]}`,mes:`${m[3]}-${m[2]}`,date:new Date(`${m[3]}-${m[2]}-${m[1]}`)};
+  // DD/MM/YYYY o D/MM/YYYY (día con 1 o 2 dígitos)
+  let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if(m){
+    const dy=m[1].padStart(2,'0'),mo=m[2].padStart(2,'0'),yr=m[3];
+    return {full:`${yr}-${mo}-${dy}`,mes:`${yr}-${mo}`,date:new Date(`${yr}-${mo}-${dy}`)};
+  }
+  // YYYY-MM-DD
   m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if(m) return {full:`${m[1]}-${m[2]}-${m[3]}`,mes:`${m[1]}-${m[2]}`,date:new Date(`${m[1]}-${m[2]}-${m[3]}`)};
   return {full:'',mes:'',date:null};
