@@ -462,10 +462,18 @@ function refreshData(){
   const safety=setTimeout(()=>{processAndRender();showLoading(false);},22000);
   const done_=()=>{ if(++done===TOTAL){clearTimeout(safety);processAndRender();showLoading(false);} };
   const stripH=(d,re)=>{ if(d.length&&re.test(String(d[0][0]||''))) d.shift(); return d; };
-  Papa.parse(URL_RG(),   {download:true,header:false,skipEmptyLines:true, complete:r=>{RAW_RG=stripH(r.data,/date|fecha|camp/i);done_();},error:done_});
-  Papa.parse(URL_MAT(),  {download:true,header:false,skipEmptyLines:true, complete:r=>{RAW_MAT=stripH(r.data,/^id|nombre|admi/i);done_();},error:done_});
-  Papa.parse(URL_LEADS(),{download:true,header:false,skipEmptyLines:true, complete:r=>{RAW_LEADS=stripH(r.data,/^id$/i);done_();},error:done_});
-  Papa.parse(URL_METAS(),{download:true,header:false,skipEmptyLines:true, complete:r=>{RAW_METAS=stripH(r.data,/periodo|fecha/i);done_();},error:done_});
+
+  const fetchCSV=(url,callback)=>{
+    fetch(url,{cache:'no-store',headers:{'Cache-Control':'no-cache, no-store'}})
+      .then(r=>r.text())
+      .then(text=>{ const r=Papa.parse(text,{header:false,skipEmptyLines:true}); callback(r.data); })
+      .catch(()=>callback([]));
+  };
+
+  fetchCSV(URL_RG(),    d=>{ RAW_RG=stripH(d,/date|fecha|camp/i);  done_(); });
+  fetchCSV(URL_MAT(),   d=>{ RAW_MAT=stripH(d,/^id|nombre|admi/i); done_(); });
+  fetchCSV(URL_LEADS(), d=>{ RAW_LEADS=stripH(d,/^id$/i);          done_(); });
+  fetchCSV(URL_METAS(), d=>{ RAW_METAS=stripH(d,/periodo|fecha/i); done_(); });
 }
 
 // ── PROCESS ──────────────────────────────────────────────────────────────────
