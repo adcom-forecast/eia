@@ -214,11 +214,11 @@ th.sort-active{color:var(--black)!important}
       Metas
     </div>
     <div class="nav-item" onclick="scrollToSec('s5')">
-      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="12" height="9" rx="1"/><path d="M4 3V1M10 3V1"/></svg>
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 4h12M1 8h8M1 12h5"/></svg>
       Por Programa
     </div>
     <div class="nav-item" onclick="scrollToSec('s6')">
-      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1h12v12H1zM1 5h12M5 5v8"/></svg>
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="12" height="9" rx="1"/><path d="M4 3V1M10 3V1"/></svg>
       Mes a Mes
     </div>
   </nav>
@@ -296,13 +296,11 @@ th.sort-active{color:var(--black)!important}
         <div class="section-title">KPIs vs Metas</div>
         <div class="kpi-grid g4" id="pre-metas-summary" style="margin-bottom:14px"></div>
 
-        <!-- Programas -->
         <div class="table-wrap">
           <div class="table-header"><div class="table-title">Metas por Programa — Pregrado</div></div>
           <div class="table-scroll" id="pre-metas-table"></div>
         </div>
 
-        <!-- Branding -->
         <div class="sub-section-title">
           <span class="dot dot-brand"></span>
           Branding
@@ -312,7 +310,6 @@ th.sort-active{color:var(--black)!important}
           <div class="table-scroll" id="pre-brand-table"></div>
         </div>
 
-        <!-- Eventos -->
         <div class="sub-section-title">
           <span class="dot dot-evento"></span>
           Eventos
@@ -407,10 +404,13 @@ th.sort-active{color:var(--black)!important}
 <script>
 // ── CONFIG ───────────────────────────────────────────────────────────────────
 const SHEET_ID = '1J862C3EvVo9XEBGq0nsfPjNRKD5kTqIEu8hZFWt4Aks';
-const URL_RG    = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=110278945`;
-const URL_MAT   = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=954833082`;
-const URL_LEADS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=381850908`;
-const URL_METAS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=1793435013`;
+
+// ── FIX CACHÉ: URLs como funciones con cache-busting timestamp ────────────────
+const CB = () => `&_cb=${Date.now()}`;
+const URL_RG    = () => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=110278945${CB()}`;
+const URL_MAT   = () => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=954833082${CB()}`;
+const URL_LEADS = () => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=381850908${CB()}`;
+const URL_METAS = () => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=1793435013${CB()}`;
 
 let RAW_RG=[], RAW_MAT=[], RAW_LEADS=[], RAW_METAS=[];
 let currentTab = 'pre';
@@ -432,7 +432,6 @@ function parseInv(v){
 
 function parseFecha(v){
   if(!v) return {full:'',mes:'',date:null};
-  // Número serial Excel
   if(!isNaN(v) && String(v).trim().length<=5){
     const d=new Date(Math.round((parseFloat(v)-25569)*86400*1000));
     const y=d.getUTCFullYear(),m=String(d.getUTCMonth()+1).padStart(2,'0'),dy=String(d.getUTCDate()).padStart(2,'0');
@@ -456,16 +455,17 @@ const fmtMes = s => { const p=s.split('-'); return p.length<2?s:(MESES_ES[parseI
 function pctClass(v){ return v>=80?'pct-good':v>=50?'pct-mid':'pct-low'; }
 
 // ── CARGA ────────────────────────────────────────────────────────────────────
+// ── FIX CACHÉ: cada llamada genera una URL única con timestamp ────────────────
 function refreshData(){
   showLoading(true);
   let done=0; const TOTAL=4;
   const safety=setTimeout(()=>{processAndRender();showLoading(false);},22000);
   const done_=()=>{ if(++done===TOTAL){clearTimeout(safety);processAndRender();showLoading(false);} };
   const stripH=(d,re)=>{ if(d.length&&re.test(String(d[0][0]||''))) d.shift(); return d; };
-  Papa.parse(URL_RG,   {download:true,header:false,skipEmptyLines:true, complete:r=>{RAW_RG=stripH(r.data,/date|fecha|camp/i);done_();},error:done_});
-  Papa.parse(URL_MAT,  {download:true,header:false,skipEmptyLines:true, complete:r=>{RAW_MAT=stripH(r.data,/^id|nombre|admi/i);done_();},error:done_});
-  Papa.parse(URL_LEADS,{download:true,header:false,skipEmptyLines:true, complete:r=>{RAW_LEADS=stripH(r.data,/^id$/i);done_();},error:done_});
-  Papa.parse(URL_METAS,{download:true,header:false,skipEmptyLines:true, complete:r=>{RAW_METAS=stripH(r.data,/periodo|fecha/i);done_();},error:done_});
+  Papa.parse(URL_RG(),   {download:true,header:false,skipEmptyLines:true, complete:r=>{RAW_RG=stripH(r.data,/date|fecha|camp/i);done_();},error:done_});
+  Papa.parse(URL_MAT(),  {download:true,header:false,skipEmptyLines:true, complete:r=>{RAW_MAT=stripH(r.data,/^id|nombre|admi/i);done_();},error:done_});
+  Papa.parse(URL_LEADS(),{download:true,header:false,skipEmptyLines:true, complete:r=>{RAW_LEADS=stripH(r.data,/^id$/i);done_();},error:done_});
+  Papa.parse(URL_METAS(),{download:true,header:false,skipEmptyLines:true, complete:r=>{RAW_METAS=stripH(r.data,/periodo|fecha/i);done_();},error:done_});
 }
 
 // ── PROCESS ──────────────────────────────────────────────────────────────────
@@ -474,7 +474,6 @@ function processAndRender(){
   const fH=$('f-hasta')?.value||'';
   const fM=$('f-medio')?.value||'';
 
-  // RG: [0]Date [1]Periodo [2]Campaign [3]AmountSpent [4]Registros [5]Medio [6]Modalidad [7]Programa
   const rg = RAW_RG.map(r=>{
     const f=parseFecha(r[0]);
     return {fecha:f.full,mes:f.mes,medio:String(r[5]||'').trim(),
@@ -482,13 +481,11 @@ function processAndRender(){
             inv:parseInv(r[3]),reg:parseInt(r[4])||0};
   }).filter(r=>r.fecha);
 
-  // LEADS CRM: [0]Id [1]Fuente [2]Estado [3]HoraCreacion [7]Programa [8]Tipo
   const leads = RAW_LEADS.map(r=>({
     fecha:parseFecha(r[3]).full,fuente:String(r[1]||'').trim(),
     tipo:String(r[8]||'').trim(),prog:String(r[7]||'').trim()
   })).filter(r=>r.fecha);
 
-  // MAT: columnas según BD Matricula
   const mat = RAW_MAT.map(r=>({
     fecha:parseFecha(r[3]).full,fuente:String(r[12]||'').trim(),
     tipo:String(r[52]||r[38]||'').trim(),
@@ -497,7 +494,6 @@ function processAndRender(){
     matriculado:parseInt(r[39])||0,adm:parseInt(r[40])||0,inscrito:parseInt(r[41])||0
   })).filter(r=>r.fecha);
 
-  // METAS: [0]Per [1]Ini [2]Fin [3]Modal [4]Prog [5]%P [6]Ppto [7]CPL [8]Leads [9]%Conv [10]MatReal [11]MetaMat
   const metas = RAW_METAS.map(r=>({
     modal:String(r[3]||'').trim(),
     prog:String(r[4]||'').trim(),
@@ -508,7 +504,6 @@ function processAndRender(){
     fin:parseFecha(r[2]).full
   })).filter(r=>r.modal&&r.prog);
 
-  // Filtros
   const inRange=(f)=>(!fD||f>=fD)&&(!fH||f<=fH);
   const rgF   = rg.filter(r=>inRange(r.fecha)&&(!fM||r.medio===fM));
   const leadsF= leads.filter(r=>inRange(r.fecha));
@@ -554,7 +549,6 @@ function renderTab(tab){
   const matOrgInsc  = matModal.filter(r=>r.fuente==='Orgánico'&&r.matriculado===1);
   const conv_pct    = lPauta.length?matPauta.length/lPauta.length*100:0;
 
-  // ── KPI Principal ──
   $(tab+'-kpi-main').innerHTML = [
     {l:'Inversión Total',     v:fmtCOP(inv_total),       s:tab==='pre'?'Pregrado + Branding + Evento':'Posgrado', cl:'accent'},
     {l:'Leads Plataforma',    v:fmtN(reg_modal),          s:modal+' (col. Registros RG)',                         cl:'accent-pre'},
@@ -570,7 +564,6 @@ function renderTab(tab){
     <div class="kpi-sub">${k.s}</div>
   </div>`).join('');
 
-  // ── Desglose por modalidad (solo Pregrado) ──
   if(tab==='pre'){
     $(tab+'-desglose').innerHTML = [
       {badge:'badge-pre',   label:'Pregrado', inv:inv_modal,  sub:`Leads plat.: ${fmtN(reg_modal)} · CPL: ${fmtCOP(cpl_plat)}`},
@@ -587,7 +580,6 @@ function renderTab(tab){
   buildCharts(tab, rgModal, lPauta);
   renderMetas(tab, modal, rgModal, lPauta, matPauta, metas);
 
-  // ── Branding y Evento (solo Pregrado) ──
   if(tab==='pre'){
     renderBrandingEvento(rg, metas);
   }
@@ -599,8 +591,6 @@ function renderTab(tab){
 
 // ── BRANDING Y EVENTO ─────────────────────────────────────────────────────────
 function renderBrandingEvento(rgAll, metasAll){
-
-  // ── BRANDING ──
   const brand    = rgAll.filter(r=>r.modal==='Branding');
   const inv_fb_b = brand.filter(r=>r.medio==='Facebook').reduce((a,r)=>a+r.inv,0);
   const inv_go_b = brand.filter(r=>r.medio==='Google').reduce((a,r)=>a+r.inv,0);
@@ -612,7 +602,6 @@ function renderBrandingEvento(rgAll, metasAll){
     if(brand.length===0){
       $('pre-brand-table').innerHTML='<div style="padding:20px;text-align:center;color:#aaa;font-size:12px">Sin datos de Branding en el período seleccionado</div>';
     } else {
-      // Filas por campaña/programa
       const progs_b = [...new Set(brand.map(r=>r.prog))];
       const rows_b  = progs_b.map(p=>{
         const fb = brand.filter(r=>r.prog===p&&r.medio==='Facebook').reduce((a,r)=>a+r.inv,0);
@@ -652,7 +641,6 @@ function renderBrandingEvento(rgAll, metasAll){
     }
   }
 
-  // ── EVENTO ──
   const evento   = rgAll.filter(r=>r.modal==='Evento');
   const progs_e  = [...new Set(evento.map(r=>r.prog))].sort();
   const inv_tot_e= evento.reduce((a,r)=>a+r.inv,0);
