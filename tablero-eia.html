@@ -35,7 +35,6 @@ body{font-family:'Poppins',sans-serif;background:var(--gray-50);color:var(--blac
 .topbar{background:var(--white);border-bottom:2px solid var(--gray-200);padding:0 26px;position:sticky;top:0;z-index:50}
 .topbar-top{display:flex;align-items:center;justify-content:space-between;padding:12px 0 8px}
 .topbar-left{display:flex;align-items:center;gap:14px}
-.topbar-logo{height:32px;width:auto}
 .topbar-divider{width:1px;height:32px;background:var(--gray-200)}
 .topbar-title{font-size:15px;font-weight:800}
 .topbar-subtitle{font-size:10px;color:#aaa;margin-top:2px}
@@ -63,7 +62,6 @@ body{font-family:'Poppins',sans-serif;background:var(--gray-50);color:var(--blac
 .section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#aaa;margin-bottom:12px;display:flex;align-items:center;gap:10px}
 .section-title::after{content:'';flex:1;height:1px;background:var(--gray-200)}
 
-/* KPI CARDS */
 .kpi-grid{display:grid;gap:12px;margin-bottom:18px}
 .g4{grid-template-columns:repeat(4,1fr)}
 .g3{grid-template-columns:repeat(3,1fr)}
@@ -87,7 +85,6 @@ body{font-family:'Poppins',sans-serif;background:var(--gray-50);color:var(--blac
 .kpi-bar-fill{height:100%;border-radius:2px;transition:width .7s ease}
 .fill-pre{background:var(--pre)}.fill-pos{background:var(--pos)}.fill-yellow{background:var(--yellow)}.fill-brand{background:var(--brand)}.fill-evento{background:var(--evento)}
 
-/* DESGLOSE MODALIDAD */
 .desglose-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
 .desglose-card{background:var(--white);border-radius:var(--r-md);border:1px solid var(--gray-200);padding:14px 16px}
 .desglose-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:700;text-transform:uppercase;margin-bottom:8px}
@@ -98,27 +95,24 @@ body{font-family:'Poppins',sans-serif;background:var(--gray-50);color:var(--blac
 .desglose-inv{font-size:17px;font-weight:800;margin-bottom:4px}
 .desglose-sub{font-size:10px;color:#aaa}
 
-/* CANAL CARDS */
 .canal-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:20px}
 .canal-card{background:var(--white);border-radius:var(--r-md);border:1px solid var(--gray-200);overflow:hidden}
 .canal-header{padding:12px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--gray-100)}
 .canal-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;color:var(--white);flex-shrink:0}
 .canal-name{font-size:12px;font-weight:700}
 .canal-name-sub{font-size:10px;color:#aaa;margin-top:1px}
-.canal-body{padding:12px 14px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.canal-body{padding:12px 14px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .c-label{font-size:9px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.05em}
 .c-value{font-size:13px;font-weight:700;margin-top:2px;word-break:break-all}
 .c-value.yellow{color:#B8860B}
 .c-value.green{color:#059669}
 
-/* CHARTS */
 .charts-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px}
 @media(max-width:1300px){.charts-grid{grid-template-columns:1fr}}
 .chart-card{background:var(--white);border-radius:var(--r-md);border:1px solid var(--gray-200);padding:15px 17px}
 .chart-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#aaa;margin-bottom:10px}
 .chart-canvas{position:relative;height:175px}
 
-/* TABLES */
 .table-wrap{background:var(--white);border-radius:var(--r-md);border:1px solid var(--gray-200);overflow:hidden;margin-bottom:14px}
 .table-header{padding:12px 17px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--gray-100)}
 .table-title{font-size:13px;font-weight:700}
@@ -146,29 +140,29 @@ th.sortable{cursor:pointer;user-select:none}
 th.sortable:hover{color:var(--black)}
 th.sort-active{color:var(--black)!important}
 
-/* PROG SEARCH */
+/* fila sin campaña */
+tr.no-camp td{color:#999;font-style:italic}
+tr.no-camp td.bold{font-style:normal;color:#666}
+.badge-nocamp{display:inline-block;padding:1px 5px;border-radius:3px;font-size:8px;font-weight:700;background:#F1F5F9;color:#64748B;margin-left:4px;vertical-align:middle;font-style:normal}
+
 .prog-controls{display:flex;gap:8px;margin-bottom:12px;align-items:center}
 .prog-search{flex:1;max-width:300px;background:var(--white);border:1px solid var(--gray-200);font-family:'Poppins',sans-serif;font-size:12px;padding:8px 12px;border-radius:var(--r-sm);outline:none}
 .prog-search:focus{border-color:var(--yellow)}
 
-/* METAS TABLE pct cell */
 .pct-good{color:#166534;font-weight:700}
 .pct-mid{color:#92400E;font-weight:700}
 .pct-low{color:#aaa;font-weight:600}
 
-/* BADGES */
 .bp{display:inline-block;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:700;text-transform:uppercase}
 .bp-pauta{background:#DBEAFE;color:#1E40AF}
 .bp-org{background:#D1FAE5;color:#065F46}
 .bp-total{background:#F1F5F9;color:#475569}
 
-/* SUBSECTION */
 .sub-section-title{font-size:11px;font-weight:700;color:#555;margin:20px 0 10px;padding-left:2px;display:flex;align-items:center;gap:8px}
 .sub-section-title .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .dot-brand{background:var(--brand)}
 .dot-evento{background:var(--evento)}
 
-/* LOADER */
 #loader{position:fixed;inset:0;background:rgba(10,10,10,.96);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
 .loader-sub{font-size:12px;color:#555;font-family:'Poppins',sans-serif}
 .spinner{width:30px;height:30px;border:3px solid #222;border-top-color:var(--yellow);border-radius:50%;animation:spin .7s linear infinite}
@@ -267,22 +261,19 @@ th.sort-active{color:var(--black)!important}
   </div>
   <div class="loading-bar" id="loading-bar"></div>
 
-  <!-- ══ TAB PREGRADO ══ -->
+  <!-- TAB PREGRADO -->
   <div class="tab-panel active" id="tab-pre">
     <div class="content">
-
       <div class="section visible" id="pre-s1">
         <div class="section-title">Resumen General — Pregrado</div>
         <div class="kpi-grid g4" id="pre-kpi-main"></div>
         <div class="section-title" style="margin-top:4px">Desglose por Modalidad</div>
         <div class="desglose-grid" id="pre-desglose"></div>
       </div>
-
       <div class="section" id="pre-s2">
         <div class="section-title">Rendimiento por Canal</div>
         <div class="canal-grid" id="pre-canal-grid"></div>
       </div>
-
       <div class="section" id="pre-s3">
         <div class="section-title">Tendencia Diaria</div>
         <div class="charts-grid">
@@ -291,35 +282,24 @@ th.sort-active{color:var(--black)!important}
           <div class="chart-card"><div class="chart-title">CPL CRM por día</div><div class="chart-canvas"><canvas id="pre-chart-cpl"></canvas></div></div>
         </div>
       </div>
-
       <div class="section" id="pre-s4">
         <div class="section-title">KPIs vs Metas</div>
         <div class="kpi-grid g4" id="pre-metas-summary" style="margin-bottom:14px"></div>
-
         <div class="table-wrap">
           <div class="table-header"><div class="table-title">Metas por Programa — Pregrado</div></div>
           <div class="table-scroll" id="pre-metas-table"></div>
         </div>
-
-        <div class="sub-section-title">
-          <span class="dot dot-brand"></span>
-          Branding
-        </div>
+        <div class="sub-section-title"><span class="dot dot-brand"></span>Branding</div>
         <div class="table-wrap">
           <div class="table-header"><div class="table-title">Inversión Branding vs Meta Presupuesto</div></div>
           <div class="table-scroll" id="pre-brand-table"></div>
         </div>
-
-        <div class="sub-section-title">
-          <span class="dot dot-evento"></span>
-          Eventos
-        </div>
+        <div class="sub-section-title"><span class="dot dot-evento"></span>Eventos</div>
         <div class="table-wrap">
           <div class="table-header"><div class="table-title">Inversión por Evento</div></div>
           <div class="table-scroll" id="pre-evento-table"></div>
         </div>
       </div>
-
       <div class="section" id="pre-s5">
         <div class="section-title">Leads y Matrículas por Programa</div>
         <div class="prog-controls">
@@ -332,7 +312,6 @@ th.sort-active{color:var(--black)!important}
           <div class="table-scroll" id="pre-prog-table"></div>
         </div>
       </div>
-
       <div class="section" id="pre-s6">
         <div class="section-title">Inversión Mes a Mes</div>
         <div class="table-wrap">
@@ -340,24 +319,20 @@ th.sort-active{color:var(--black)!important}
           <div class="table-scroll" id="pre-mes-table"></div>
         </div>
       </div>
-
     </div>
   </div>
 
-  <!-- ══ TAB POSGRADO ══ -->
+  <!-- TAB POSGRADO -->
   <div class="tab-panel" id="tab-pos">
     <div class="content">
-
       <div class="section visible" id="pos-s1">
         <div class="section-title">Resumen General — Posgrado</div>
         <div class="kpi-grid g4" id="pos-kpi-main"></div>
       </div>
-
       <div class="section" id="pos-s2">
         <div class="section-title">Rendimiento por Canal</div>
         <div class="canal-grid" id="pos-canal-grid"></div>
       </div>
-
       <div class="section" id="pos-s3">
         <div class="section-title">Tendencia Diaria</div>
         <div class="charts-grid">
@@ -366,7 +341,6 @@ th.sort-active{color:var(--black)!important}
           <div class="chart-card"><div class="chart-title">CPL CRM por día</div><div class="chart-canvas"><canvas id="pos-chart-cpl"></canvas></div></div>
         </div>
       </div>
-
       <div class="section" id="pos-s4">
         <div class="section-title">KPIs vs Metas</div>
         <div class="kpi-grid g4" id="pos-metas-summary" style="margin-bottom:14px"></div>
@@ -375,7 +349,6 @@ th.sort-active{color:var(--black)!important}
           <div class="table-scroll" id="pos-metas-table"></div>
         </div>
       </div>
-
       <div class="section" id="pos-s5">
         <div class="section-title">Leads y Matrículas por Programa</div>
         <div class="prog-controls">
@@ -388,7 +361,6 @@ th.sort-active{color:var(--black)!important}
           <div class="table-scroll" id="pos-prog-table"></div>
         </div>
       </div>
-
       <div class="section" id="pos-s6">
         <div class="section-title">Inversión Mes a Mes</div>
         <div class="table-wrap">
@@ -396,16 +368,12 @@ th.sort-active{color:var(--black)!important}
           <div class="table-scroll" id="pos-mes-table"></div>
         </div>
       </div>
-
     </div>
   </div>
 </main>
 
 <script>
-// ── CONFIG ───────────────────────────────────────────────────────────────────
 const SHEET_ID = '1J862C3EvVo9XEBGq0nsfPjNRKD5kTqIEu8hZFWt4Aks';
-
-// ── FIX CACHÉ: URLs como funciones con cache-busting timestamp ────────────────
 const CB = () => `&_cb=${Date.now()}`;
 const URL_RG    = () => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=110278945${CB()}`;
 const URL_MAT   = () => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=954833082${CB()}`;
@@ -418,7 +386,6 @@ let _charts = {};
 const _progSort = { pre:{col:'inv_total',dir:-1}, pos:{col:'inv_total',dir:-1} };
 const $=id=>document.getElementById(id);
 
-// ── FORMAT ───────────────────────────────────────────────────────────────────
 const fmtCOP = n => (!n||isNaN(n)||n===0)?'—':'$'+Math.round(n).toLocaleString('es-CO');
 const fmtN   = n => (!n||isNaN(n)||n===0)?'0':Math.round(n).toLocaleString('es-CO');
 const fmtNz  = n => (!n||isNaN(n))?'—':Math.round(n).toLocaleString('es-CO');
@@ -442,13 +409,11 @@ function parseFecha(v){
     return {full:`${y}-${m}-${d}`,mes:`${y}-${m}`,date:v};
   }
   const s=String(v).trim();
-  // DD/MM/YYYY o D/MM/YYYY (día con 1 o 2 dígitos)
   let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
   if(m){
     const dy=m[1].padStart(2,'0'),mo=m[2].padStart(2,'0'),yr=m[3];
     return {full:`${yr}-${mo}-${dy}`,mes:`${yr}-${mo}`,date:new Date(`${yr}-${mo}-${dy}`)};
   }
-  // YYYY-MM-DD
   m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
   if(m) return {full:`${m[1]}-${m[2]}-${m[3]}`,mes:`${m[1]}-${m[2]}`,date:new Date(`${m[1]}-${m[2]}-${m[3]}`)};
   return {full:'',mes:'',date:null};
@@ -456,32 +421,26 @@ function parseFecha(v){
 
 const MESES_ES=['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
 const fmtMes = s => { const p=s.split('-'); return p.length<2?s:(MESES_ES[parseInt(p[1])]||p[1])+' '+p[0]; };
-
 function pctClass(v){ return v>=80?'pct-good':v>=50?'pct-mid':'pct-low'; }
 
-// ── CARGA ────────────────────────────────────────────────────────────────────
-// ── FIX CACHÉ: cada llamada genera una URL única con timestamp ────────────────
 function refreshData(){
   showLoading(true);
   let done=0; const TOTAL=4;
   const safety=setTimeout(()=>{processAndRender();showLoading(false);},22000);
   const done_=()=>{ if(++done===TOTAL){clearTimeout(safety);processAndRender();showLoading(false);} };
   const stripH=(d,re)=>{ if(d.length&&re.test(String(d[0][0]||''))) d.shift(); return d; };
-
   const fetchCSV=(url,callback)=>{
     fetch(url,{cache:'no-store',headers:{'Cache-Control':'no-cache, no-store'}})
       .then(r=>r.text())
       .then(text=>{ const r=Papa.parse(text,{header:false,skipEmptyLines:true}); callback(r.data); })
       .catch(()=>callback([]));
   };
-
   fetchCSV(URL_RG(),    d=>{ RAW_RG=stripH(d,/date|fecha|camp/i);  done_(); });
   fetchCSV(URL_MAT(),   d=>{ RAW_MAT=stripH(d,/^id|nombre|admi/i); done_(); });
   fetchCSV(URL_LEADS(), d=>{ RAW_LEADS=stripH(d,/^id$/i);          done_(); });
   fetchCSV(URL_METAS(), d=>{ RAW_METAS=stripH(d,/periodo|fecha/i); done_(); });
 }
 
-// ── PROCESS ──────────────────────────────────────────────────────────────────
 function processAndRender(){
   const fD=$('f-desde')?.value||'';
   const fH=$('f-hasta')?.value||'';
@@ -534,7 +493,6 @@ function processAndRender(){
   revealSections();
 }
 
-// ── RENDER TAB ────────────────────────────────────────────────────────────────
 function renderTab(tab){
   const {rg,leads,mat,metas} = window._S||{};
   if(!rg) return;
@@ -589,20 +547,17 @@ function renderTab(tab){
     </div>`).join('');
   }
 
-  renderCanalCards(tab, rgModal, rgBrand, rgEvento, lPauta, inv_modal);
+  renderCanalCards(tab, rgModal, rgBrand, rgEvento, inv_modal);
   buildCharts(tab, rgModal, lPauta);
   renderMetas(tab, modal, rgModal, lPauta, matPauta, metas);
 
-  if(tab==='pre'){
-    renderBrandingEvento(rg, metas);
-  }
+  if(tab==='pre') renderBrandingEvento(rg, metas);
 
   buildProgData(tab, modal, rgModal, rgBrand, rgEvento, leadsModal, lPauta, lOrg, matModal, matPauta, matOrgInsc);
   renderProgTable(tab);
   renderMesTable(tab, rg);
 }
 
-// ── BRANDING Y EVENTO ─────────────────────────────────────────────────────────
 function renderBrandingEvento(rgAll, metasAll){
   const brand    = rgAll.filter(r=>r.modal==='Branding');
   const inv_fb_b = brand.filter(r=>r.medio==='Facebook').reduce((a,r)=>a+r.inv,0);
@@ -630,7 +585,6 @@ function renderBrandingEvento(rgAll, metasAll){
           <td class="num ${pct!==null?pctClass(pct):''}">${pct!==null?fmtP(pct):'—'}</td>
         </tr>`;
       }).join('');
-
       $('pre-brand-table').innerHTML=`<table>
         <thead><tr>
           <th>Campaña</th>
@@ -673,7 +627,6 @@ function renderBrandingEvento(rgAll, metasAll){
           <td class="num bold">${fmtCOP(tt)}</td>
         </tr>`;
       }).join('');
-
       $('pre-evento-table').innerHTML=`<table>
         <thead><tr>
           <th>Evento</th>
@@ -694,8 +647,8 @@ function renderBrandingEvento(rgAll, metasAll){
   }
 }
 
-// ── CANAL CARDS ───────────────────────────────────────────────────────────────
-function renderCanalCards(tab, rgModal, rgBrand, rgEvento, lPauta, inv_modal){
+// ── CANAL CARDS — sin Leads CRM ───────────────────────────────────────────────
+function renderCanalCards(tab, rgModal, rgBrand, rgEvento, inv_modal){
   const CANALES = [
     {key:'Facebook',label:'Meta / Facebook',sub:'Facebook & Instagram Ads',bg:'#1877F2',icon:'FB'},
     {key:'Google',  label:'Google Ads',     sub:'Search + Display + YouTube',bg:'#EA4335',icon:'GO'},
@@ -705,8 +658,6 @@ function renderCanalCards(tab, rgModal, rgBrand, rgEvento, lPauta, inv_modal){
     const inv   = rc.reduce((a,r)=>a+r.inv,0);
     const reg   = rc.reduce((a,r)=>a+r.reg,0);
     const cpl_p = reg?inv/reg:0;
-    const lc    = lPauta.length&&inv_modal?Math.round(lPauta.length*(inv/inv_modal)):0;
-    const cpl_c = lc?inv/lc:0;
     const part  = inv_modal?inv/inv_modal*100:0;
     const invBE = tab==='pre'?[...rgBrand,...rgEvento].filter(r=>r.medio===c.key).reduce((a,r)=>a+r.inv,0):0;
     const invBEstr = invBE>0?`<div style="font-size:10px;color:#aaa;margin-top:3px">B+E: ${fmtCOP(invBE)}</div>`:'';
@@ -728,11 +679,6 @@ function renderCanalCards(tab, rgModal, rgBrand, rgEvento, lPauta, inv_modal){
           <div class="c-value yellow" style="font-size:11px;margin-top:3px">CPL: ${fmtCOP(cpl_p)}</div>
         </div>
         <div>
-          <div class="c-label">Leads CRM (est.)</div>
-          <div class="c-value">${fmtN(lc)}</div>
-          <div class="c-value yellow" style="font-size:11px;margin-top:3px">CPL: ${fmtCOP(cpl_c)}</div>
-        </div>
-        <div>
           <div class="c-label">Días activos</div>
           <div class="c-value">${[...new Set(rc.map(r=>r.fecha))].length}</div>
         </div>
@@ -741,7 +687,6 @@ function renderCanalCards(tab, rgModal, rgBrand, rgEvento, lPauta, inv_modal){
   }).join('');
 }
 
-// ── CHARTS ───────────────────────────────────────────────────────────────────
 function buildCharts(tab, rgModal, lPauta){
   const dailyInv={}, dailyLC={};
   rgModal.forEach(r=>{ if(r.fecha) dailyInv[r.fecha]=(dailyInv[r.fecha]||0)+r.inv; });
@@ -794,7 +739,6 @@ function buildCharts(tab, rgModal, lPauta){
   mk(tab+'-chart-cpl',  'CPL CRM',   cpl, '#7C3AED',true);
 }
 
-// ── METAS ────────────────────────────────────────────────────────────────────
 function renderMetas(tab, modal, rgModal, lPauta, matPauta, metasAll){
   const metas = metasAll.filter(m=>m.modal===modal&&m.prog);
   if(!metas.length){
@@ -875,17 +819,48 @@ function renderMetas(tab, modal, rgModal, lPauta, matPauta, metasAll){
   </table>`;
 }
 
-// ── TABLA PROGRAMAS ───────────────────────────────────────────────────────────
+// ── BUILD PROG DATA — incluye programas CRM sin campaña ───────────────────────
 function buildProgData(tab, modal, rgModal, rgBrand, rgEvento, leadsModal, lPauta, lOrg, matModal, matPauta, matOrgInsc){
   const map={};
+
+  // 1. Primero cargamos los programas que SÍ tienen inversión en RG
   rgModal.forEach(r=>{
     if(!r.prog) return;
-    if(!map[r.prog]) map[r.prog]={prog:r.prog,inv_total:0,inv_fb:0,inv_go:0,reg_fb:0,reg_go:0,reg_total:0};
+    if(!map[r.prog]) map[r.prog]={prog:r.prog,inv_total:0,inv_fb:0,inv_go:0,reg_fb:0,reg_go:0,reg_total:0,tiene_campana:true};
     map[r.prog].inv_total+=r.inv;
     if(r.medio==='Facebook'){map[r.prog].inv_fb+=r.inv;map[r.prog].reg_fb+=r.reg;}
     if(r.medio==='Google'){map[r.prog].inv_go+=r.inv;map[r.prog].reg_go+=r.reg;}
     map[r.prog].reg_total+=r.reg;
   });
+
+  // 2. Luego recorremos todos los leads CRM y añadimos programas que no están en RG
+  lPauta.forEach(r=>{
+    if(!r.prog) return;
+    if(!map[r.prog]){
+      // Programa que existe en CRM pero NO tiene campaña en RG
+      map[r.prog]={prog:r.prog,inv_total:0,inv_fb:0,inv_go:0,reg_fb:0,reg_go:0,reg_total:0,tiene_campana:false};
+    }
+  });
+  lOrg.forEach(r=>{
+    if(!r.prog) return;
+    if(!map[r.prog]){
+      map[r.prog]={prog:r.prog,inv_total:0,inv_fb:0,inv_go:0,reg_fb:0,reg_go:0,reg_total:0,tiene_campana:false};
+    }
+  });
+  // Matrículas también pueden traer programas nuevos
+  matPauta.forEach(r=>{
+    if(!r.prog) return;
+    if(!map[r.prog]){
+      map[r.prog]={prog:r.prog,inv_total:0,inv_fb:0,inv_go:0,reg_fb:0,reg_go:0,reg_total:0,tiene_campana:false};
+    }
+  });
+  matOrgInsc.forEach(r=>{
+    if(!r.prog) return;
+    if(!map[r.prog]){
+      map[r.prog]={prog:r.prog,inv_total:0,inv_fb:0,inv_go:0,reg_fb:0,reg_go:0,reg_total:0,tiene_campana:false};
+    }
+  });
+
   window['_prog_'+tab] = Object.values(map).map(p=>{
     const cpl_fb  = p.reg_fb?p.inv_fb/p.reg_fb:0;
     const cpl_go  = p.reg_go?p.inv_go/p.reg_go:0;
@@ -911,7 +886,11 @@ function renderProgTable(tab){
   const search=($(`${tab}-prog-search`)?.value||'').toLowerCase();
   const s=_progSort[tab];
   let rows=data.filter(p=>!search||p.prog.toLowerCase().includes(search));
-  rows.sort((a,b)=>(typeof a[s.col]==='string'?a[s.col].localeCompare(b[s.col]):(a[s.col]||0)-(b[s.col]||0))*s.dir);
+  rows.sort((a,b)=>{
+    // Programas sin campaña siempre al final
+    if(a.tiene_campana!==b.tiene_campana) return a.tiene_campana?-1:1;
+    return (typeof a[s.col]==='string'?a[s.col].localeCompare(b[s.col]):(a[s.col]||0)-(b[s.col]||0))*s.dir;
+  });
 
   const th=(col,lbl,num,style)=>{
     const act=s.col===col;
@@ -919,29 +898,38 @@ function renderProgTable(tab){
       onclick="sortProg('${tab}','${col}')">${lbl}${act?(s.dir>0?' ↑':' ↓'):''}</th>`;
   };
 
-  const tI=rows.reduce((a,r)=>a+r.inv_total,0);
-  const tFB=rows.reduce((a,r)=>a+r.inv_fb,0),tGO=rows.reduce((a,r)=>a+r.inv_go,0);
-  const tRFB=rows.reduce((a,r)=>a+r.reg_fb,0),tRGO=rows.reduce((a,r)=>a+r.reg_go,0);
-  const tRT=rows.reduce((a,r)=>a+r.reg_total,0);
-  const tLC=rows.reduce((a,r)=>a+r.lc,0),tLO=rows.reduce((a,r)=>a+r.lo,0);
-  const tMP=rows.reduce((a,r)=>a+r.mp,0),tMO=rows.reduce((a,r)=>a+r.mo,0);
+  // Totales solo de programas con campaña para inversión, todos para CRM
+  const tI =rows.reduce((a,r)=>a+r.inv_total,0);
+  const tFB=rows.reduce((a,r)=>a+r.inv_fb,0);
+  const tGO=rows.reduce((a,r)=>a+r.inv_go,0);
+  const tRFB=rows.reduce((a,r)=>a+r.reg_fb,0);
+  const tRGO=rows.reduce((a,r)=>a+r.reg_go,0);
+  const tRT =rows.reduce((a,r)=>a+r.reg_total,0);
+  const tLC =rows.reduce((a,r)=>a+r.lc,0);
+  const tLO =rows.reduce((a,r)=>a+r.lo,0);
+  const tMP =rows.reduce((a,r)=>a+r.mp,0);
+  const tMO =rows.reduce((a,r)=>a+r.mo,0);
 
   const tbody=rows.map(p=>{
     const cc=p.conv>5?'color:#166534':p.conv>1?'color:#92400E':'color:#aaa';
-    return `<tr>
-      <td class="bold" style="max-width:190px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${p.prog}">${p.prog}</td>
-      <td class="num bold">${fmtCOP(p.inv_total)}</td>
-      <td class="num" style="color:var(--fb)">${fmtCOP(p.inv_fb)}</td>
-      <td class="num" style="color:var(--go)">${fmtCOP(p.inv_go)}</td>
-      <td class="num">${fmtN(p.reg_fb)}</td>
-      <td class="num">${fmtN(p.reg_go)}</td>
-      <td class="num bold">${fmtN(p.reg_total)}</td>
-      <td class="num" style="color:#B8860B;font-weight:700">${fmtCOP(p.cpl_plat)}</td>
+    const nocamp=!p.tiene_campana;
+    // Si no tiene campaña: inversiones y leads plataforma en —
+    return `<tr${nocamp?' class="no-camp"':''}>
+      <td class="bold" style="max-width:190px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${p.prog}">
+        ${p.prog}${nocamp?'<span class="badge-nocamp">sin campaña</span>':''}
+      </td>
+      <td class="num bold">${nocamp?'—':fmtCOP(p.inv_total)}</td>
+      <td class="num" style="color:var(--fb)">${nocamp?'—':fmtCOP(p.inv_fb)}</td>
+      <td class="num" style="color:var(--go)">${nocamp?'—':fmtCOP(p.inv_go)}</td>
+      <td class="num">${nocamp?'—':fmtN(p.reg_fb)}</td>
+      <td class="num">${nocamp?'—':fmtN(p.reg_go)}</td>
+      <td class="num bold">${nocamp?'—':fmtN(p.reg_total)}</td>
+      <td class="num" style="color:#B8860B;font-weight:700">${nocamp?'—':fmtCOP(p.cpl_plat)}</td>
       <td class="num bold">${fmtN(p.lc)}</td>
-      <td class="num" style="color:#B8860B;font-weight:700">${fmtCOP(p.cpl_crm)}</td>
+      <td class="num" style="color:#B8860B;font-weight:700">${nocamp?'—':fmtCOP(p.cpl_crm)}</td>
       <td class="num" style="color:var(--pre);font-weight:700">${fmtN(p.mp)}</td>
       <td class="num" style="color:var(--evento);font-weight:700">${fmtN(p.mo)}</td>
-      <td class="num" style="font-weight:700;${cc}">${fmtP(p.conv)}</td>
+      <td class="num" style="font-weight:700;${cc}">${nocamp?'—':fmtP(p.conv)}</td>
     </tr>`;
   }).join('');
 
@@ -977,7 +965,6 @@ function renderProgTable(tab){
   </table>`;
 }
 
-// ── MES A MES ─────────────────────────────────────────────────────────────────
 function renderMesTable(tab, rg){
   const modales = tab==='pre'?['Pregrado','Branding','Evento']:['Posgrado'];
   const CANALES = ['Facebook','Google'];
@@ -1047,7 +1034,6 @@ function toggleMes(mes){
   rows.forEach(r=>r.classList.toggle('hidden',open));
 }
 
-// ── TABS ──────────────────────────────────────────────────────────────────────
 function switchTab(tab,el){
   currentTab=tab;
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
@@ -1077,7 +1063,6 @@ function showLoading(on){
   document.getElementById('loading-bar').classList.toggle('active',on);
   if(!on) document.getElementById('loader').style.display='none';
 }
-
 function scrollToSec(id){
   const el=document.getElementById(currentTab+'-'+id);
   if(!el) return;
