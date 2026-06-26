@@ -455,7 +455,7 @@ function processAndRender(){
 
   const leads = RAW_LEADS.map(r=>({
     fecha:parseFecha(r[3]).full,fuente:String(r[1]||'').trim(),
-    tipo:String(r[8]||'').trim(),prog:String(r[7]||'').trim()
+    tipo:String(r[9]||'').trim(),prog:String(r[8]||'').trim()
   })).filter(r=>r.fecha);
 
   const mat = RAW_MAT.map(r=>({
