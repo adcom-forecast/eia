@@ -63,10 +63,11 @@ body{font-family:'Poppins',sans-serif;background:var(--gray-50);color:var(--blac
 .section-title::after{content:'';flex:1;height:1px;background:var(--gray-200)}
 
 .kpi-grid{display:grid;gap:12px;margin-bottom:18px}
+.g5{grid-template-columns:repeat(5,1fr)}
 .g4{grid-template-columns:repeat(4,1fr)}
 .g3{grid-template-columns:repeat(3,1fr)}
 .g2{grid-template-columns:repeat(2,1fr)}
-@media(max-width:1300px){.g4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:1300px){.g5{grid-template-columns:repeat(2,1fr)}.g4{grid-template-columns:repeat(2,1fr)}}
 .kpi-card{background:var(--white);border-radius:var(--r-md);padding:15px 17px;border:1px solid var(--gray-200);position:relative}
 .kpi-card.accent{border-top:3px solid var(--yellow)}
 .kpi-card.accent-pre{border-top:3px solid var(--pre)}
@@ -266,7 +267,7 @@ tr.no-camp td.bold{font-style:normal;color:#666}
     <div class="content">
       <div class="section visible" id="pre-s1">
         <div class="section-title">Resumen General — Pregrado</div>
-        <div class="kpi-grid g3" id="pre-kpi-main"></div>
+        <div class="kpi-grid g5" id="pre-kpi-main"></div>
         <div class="section-title" style="margin-top:4px">Desglose por Modalidad</div>
         <div class="desglose-grid" id="pre-desglose"></div>
       </div>
@@ -327,7 +328,7 @@ tr.no-camp td.bold{font-style:normal;color:#666}
     <div class="content">
       <div class="section visible" id="pos-s1">
         <div class="section-title">Resumen General — Posgrado</div>
-        <div class="kpi-grid g3" id="pos-kpi-main"></div>
+        <div class="kpi-grid g5" id="pos-kpi-main"></div>
       </div>
       <div class="section" id="pos-s2">
         <div class="section-title">Rendimiento por Canal</div>
@@ -518,18 +519,20 @@ function renderTab(tab){
   const matModal    = mat.filter(r=>r.tipo===modal);
   const matPauta    = matModal.filter(r=>r.fuente==='Pauta'&&r.matriculado===1);
   const matOrgInsc  = matModal.filter(r=>r.fuente==='Orgánico'&&r.matriculado===1);
-  const conv_pct    = lPauta.length?matPauta.length/lPauta.length*100:0;
+  const conv_pauta  = lPauta.length?matPauta.length/lPauta.length*100:0;
+  const conv_org    = lOrg.length?matOrgInsc.length/lOrg.length*100:0;
 
   $(tab+'-kpi-main').innerHTML = [
-    {l:'Inversión Total',        v:fmtCOP(inv_total),       s:tab==='pre'?'Pregrado + Branding + Evento':'Posgrado', cl:'accent'},
-    {l:'Leads Plataforma',       v:fmtN(reg_modal),          s:modal+' (col. Registros RG)',                         cl:'accent-pre'},
-    {l:'CPL Plataforma',         v:fmtCOP(cpl_plat),        s:'Inversión '+modal+' / Leads plataforma',             cl:''},
-    {l:'Leads CRM — Pauta',      v:fmtN(lPauta.length),     s:'Fuente=Pauta en BD Leads',                           cl:'accent-pre'},
-    {l:'Leads CRM — Orgánico',   v:fmtN(lOrg.length),       s:'Fuente=Orgánico en BD Leads',                        cl:'accent-pos'},
-    {l:'CPL CRM — Pauta',        v:fmtCOP(cpl_crm),         s:'Inversión '+modal+' / Leads CRM pauta',              cl:''},
-    {l:'Matrículas Pauta',       v:fmtN(matPauta.length),   s:'Matriculado=1 + Fuente=Pauta',                       cl:''},
-    {l:'Matrículas Orgánico',    v:fmtN(matOrgInsc.length), s:'Matriculado=1 + Fuente=Orgánico',                    cl:''},
-    {l:'Conv. Lead → Matríc.',   v:fmtP(conv_pct),          s:'Matrículas pauta / Leads CRM pauta',                 cl:''},
+    {l:'Inversión Total',        v:fmtCOP(inv_total),        s:tab==='pre'?'Pregrado + Branding + Evento':'Posgrado', cl:'accent'},
+    {l:'Leads Plataforma',       v:fmtN(reg_modal),          s:modal+' (col. Registros RG)',                          cl:'accent-pre'},
+    {l:'CPL Plataforma',         v:fmtCOP(cpl_plat),         s:'Inversión '+modal+' / Leads plataforma',              cl:''},
+    {l:'CPL CRM — Pauta',        v:fmtCOP(cpl_crm),          s:'Inversión '+modal+' / Leads CRM pauta',               cl:''},
+    {l:'Leads CRM — Pauta',      v:fmtN(lPauta.length),      s:'Fuente=Pauta en BD Leads',                            cl:'accent-pre'},
+    {l:'Leads CRM — Orgánico',   v:fmtN(lOrg.length),        s:'Fuente=Orgánico en BD Leads',                         cl:'accent-pos'},
+    {l:'Matrículas Pauta',       v:fmtN(matPauta.length),    s:'Matriculado=1 + Fuente=Pauta',                        cl:''},
+    {l:'Matrículas Orgánico',    v:fmtN(matOrgInsc.length),  s:'Matriculado=1 + Fuente=Orgánico',                     cl:''},
+    {l:'Conv. Pauta',            v:fmtP(conv_pauta),         s:'Mat. pauta / Leads CRM pauta',                        cl:'accent-pre'},
+    {l:'Conv. Orgánico',         v:fmtP(conv_org),           s:'Mat. orgánico / Leads CRM orgánico',                  cl:'accent-pos'},
   ].map(k=>`<div class="kpi-card ${k.cl}">
     <div class="kpi-label">${k.l}</div>
     <div class="kpi-value">${k.v}</div>
