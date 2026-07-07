@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EIA — Portal de Reportes | ADCOM</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --black:#0A0A0A;--white:#fff;--yellow:#FFC000;
+  --g50:#F8F8F8;--g100:#F0F0F0;--g200:#E0E0E0;--g400:#9E9E9E;--g600:#555;
+  --r-sm:8px;--r-md:16px;--r-lg:24px;--r-xl:32px;
+  --fb:#1877F2;--gg:#EA4335;
+  --purple:#7C3AED;--gold:#B7891A;--teal:#0D9488;
+  --green:#22c55e;--amber:#f59e0b;--red:#ef4444;
+  --green-bg:#dcfce7;--amber-bg:#fef3c7;--red-bg:#fee2e2;
+  --sidebar:260px;
+}
+body{font-family:'Poppins',sans-serif;background:var(--g50);color:var(--black);display:flex;min-height:100vh}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--sidebar);min-height:100vh;background:var(--black);position:fixed;top:0;left:0;display:flex;flex-direction:column;z-index:200;overflow-y:auto}
+.sb-logo{padding:22px 18px;border-bottom:1px solid #1e1e1e;display:flex;align-items:center;gap:11px;flex-shrink:0}
+.sb-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--yellow),#e6ac00);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:var(--black);flex-shrink:0}
+.sb-brand{font-size:12px;font-weight:700;color:var(--white)}
+.sb-sub{font-size:10px;color:var(--g400)}
+.sb-client{margin:14px 14px 4px;background:#111;border-radius:var(--r-md);padding:12px 14px;border-left:3px solid var(--yellow)}
+.sb-client-label{font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.12em;margin-bottom:3px}
+.sb-client-name{font-size:12px;font-weight:700;color:var(--white);line-height:1.3}
+
+.sb-level{margin-top:10px}
+.sb-level-header{display:flex;align-items:center;justify-content:space-between;padding:11px 18px;cursor:pointer;user-select:none;transition:.15s}
+.sb-level-header:hover{background:#141414}
+.sb-level.active .sb-level-header{background:#161616;border-left:3px solid var(--yellow)}
+.sb-level-title{font-size:12px;font-weight:700;color:var(--white)}
+.sb-level-period{font-size:9px;color:var(--g400);margin-top:2px}
+.sb-level-arrow{font-size:10px;color:var(--g400);transition:.2s}
+.sb-level.open .sb-level-arrow{transform:rotate(90deg)}
+.sb-level-items{display:none;padding-bottom:6px}
+.sb-level.open .sb-level-items{display:block}
+.sb-item{display:flex;align-items:center;gap:9px;padding:8px 18px 8px 30px;cursor:pointer;font-size:10.5px;font-weight:500;color:var(--g400);border-left:2px solid transparent;transition:.15s;line-height:1.3}
+.sb-item:hover{color:var(--white);background:#1a1a1a}
+.sb-item.active{color:var(--white);border-left-color:var(--yellow);background:#1a1a1a}
+.sb-item-dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+.sb-divider{height:1px;background:#1e1e1e;margin:8px 0}
+.sb-pdf-btn{margin:14px 14px 16px;padding:10px;background:var(--yellow);border:none;border-radius:var(--r-md);font-family:'Poppins',sans-serif;font-size:11px;font-weight:700;color:var(--black);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:.2s}
+.sb-pdf-btn:hover{background:#e6ac00}
+
+/* ── MAIN ── */
+.main{margin-left:var(--sidebar);flex:1;min-width:0}
+.topbar{position:sticky;top:0;z-index:90;background:rgba(248,248,248,.96);backdrop-filter:blur(10px);border-bottom:1px solid var(--g200);padding:12px 36px;display:flex;align-items:center;justify-content:space-between}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.topbar-crumb{font-size:11px;color:var(--g400)}
+.topbar-sep{color:var(--g200)}
+.topbar-title{font-size:12px;font-weight:600;color:var(--black)}
+.topbar-period{font-size:11px;color:var(--g400)}
+.content{padding:40px 36px;max-width:1150px}
+.report-page{display:none}
+.report-page.active{display:block}
+
+/* ── HERO ── */
+.hero{background:var(--black);border-radius:var(--r-xl);padding:44px;margin-bottom:36px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-50px;right:-50px;width:260px;height:260px;border-radius:50%;border:70px solid rgba(255,192,0,.06)}
+.hero-eyebrow{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:600;color:var(--yellow);text-transform:uppercase;letter-spacing:.14em;margin-bottom:14px}
+.hero-pulse{width:7px;height:7px;border-radius:50%;background:var(--yellow);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.5)}}
+.hero h1{font-size:32px;font-weight:800;color:var(--white);line-height:1.2;margin-bottom:6px}
+.hero-sub{font-size:13px;color:var(--g400);margin-bottom:32px}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.kpi-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--r-lg);padding:18px 16px}
+.kpi-val{font-size:22px;font-weight:800;color:var(--yellow);line-height:1}
+.kpi-label{font-size:10px;color:var(--g400);margin-top:5px;font-weight:500}
+.kpi-sub{font-size:9px;color:#444;margin-top:2px}
+.kpi-bar-mini{background:rgba(255,255,255,.1);border-radius:4px;height:5px;margin-top:10px;overflow:hidden}
+.kpi-bar-mini-fill{height:5px;border-radius:4px;background:var(--yellow)}
+
+/* ── SECTION ── */
+.report-section{margin-bottom:48px;opacity:0;transform:translateY(20px);transition:.45s ease}
+.report-section.visible{opacity:1;transform:none}
+.sec-eyebrow{font-size:9px;font-weight:700;color:var(--yellow);text-transform:uppercase;letter-spacing:.15em;margin-bottom:5px}
+.sec-title{font-size:20px;font-weight:800;color:var(--black)}
+.sec-desc{font-size:12px;color:var(--g600);margin-top:5px;line-height:1.65}
+.sec-header{margin-bottom:20px}
+
+/* ── MODALIDAD / CANAL CARDS ── */
+.mod-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:8px}
+.mod-card{background:var(--white);border:1px solid var(--g200);border-radius:var(--r-lg);padding:20px}
+.mod-tag{display:inline-block;font-size:9px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+.mod-tag.pregrado{background:#ede9fe;color:var(--purple)}
+.mod-tag.branding{background:#fef3c7;color:var(--gold)}
+.mod-tag.eventos{background:#d1fae5;color:var(--teal)}
+.mod-val{font-size:22px;font-weight:800;color:var(--black)}
+.mod-sub{font-size:10px;color:var(--g400);margin-top:4px}
+
+.canal-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:8px}
+.canal-card{background:var(--white);border:1px solid var(--g200);border-radius:var(--r-lg);padding:22px}
+.canal-card.fb{border-top:3px solid var(--fb)}
+.canal-card.gg{border-top:3px solid var(--gg)}
+.canal-head{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.canal-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:#fff;flex-shrink:0}
+.canal-icon.fb{background:var(--fb)}
+.canal-icon.gg{background:var(--gg)}
+.canal-name{font-size:13px;font-weight:700;color:var(--black)}
+.canal-sub{font-size:10px;color:var(--g400)}
+.canal-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;border-top:1px solid var(--g100);padding-top:14px}
+.cm-label{font-size:9px;color:var(--g400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.cm-val{font-size:15px;font-weight:800;color:var(--black)}
+.cm-val.yel{color:#B7891A}
+.cm-sub{font-size:9px;color:var(--g400);margin-top:2px}
+
+/* ── CARDS generic ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:8px}
+.card{background:var(--white);border:1px solid var(--g200);border-radius:var(--r-lg);padding:22px}
+.card-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--g400);margin-bottom:12px}
+.big-val{font-size:26px;font-weight:800;color:var(--black);margin-bottom:3px}
+.bar-bg{background:var(--g100);border-radius:4px;height:5px;margin-top:12px}
+.bar-fill{height:5px;border-radius:4px}
+
+/* ── CHARTS ── */
+.chart-card{background:var(--white);border:1px solid var(--g200);border-radius:var(--r-lg);padding:22px 22px 14px;margin-bottom:18px}
+.chart-card-title{font-size:12px;font-weight:700;color:var(--black);margin-bottom:2px}
+.chart-card-sub{font-size:10px;color:var(--g400);margin-bottom:14px}
+.chart-wrap{position:relative;height:260px}
+.legend{display:flex;gap:14px;margin-bottom:10px}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--g600)}
+.leg-dot{width:9px;height:9px;border-radius:3px}
+.chart-note{font-size:10px;color:var(--g400);margin-top:10px;font-style:italic}
+
+/* ── QUALITY / IA ── */
+.qual-compare{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:16px}
+.qual-card{background:var(--white);border:1px solid var(--g200);border-radius:var(--r-lg);padding:20px}
+.qual-card.before{border-top:3px solid var(--g400)}
+.qual-card.after{border-top:3px solid var(--yellow)}
+.qual-period{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--g400);margin-bottom:2px}
+.qual-n{font-size:10px;color:var(--g400);margin-bottom:14px}
+.qual-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--g100)}
+.qual-row:last-child{border-bottom:none}
+.qual-row-label{font-size:11px;color:var(--g600)}
+.qual-row-val{font-size:12px;font-weight:700;color:var(--black)}
+.qual-delta{font-size:9px;font-weight:700;padding:1px 7px;border-radius:20px;margin-left:6px}
+.qual-delta.up{background:var(--green-bg);color:var(--green)}
+.qual-delta.down{background:var(--red-bg);color:var(--red)}
+
+/* ── TIMELINE ── */
+.timeline{position:relative;padding-left:28px}
+.timeline::before{content:'';position:absolute;left:6px;top:6px;bottom:6px;width:2px;background:var(--g200)}
+.tl-item{position:relative;margin-bottom:28px}
+.tl-item:last-child{margin-bottom:0}
+.tl-dot{position:absolute;left:-28px;top:2px;width:14px;height:14px;border-radius:50%;background:var(--yellow);border:3px solid var(--black)}
+.tl-date{font-size:9px;font-weight:700;color:var(--yellow);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.tl-title{font-size:14px;font-weight:700;color:var(--black);margin-bottom:6px}
+.tl-desc{font-size:12px;color:var(--g600);line-height:1.65;margin-bottom:10px}
+.tl-data{background:var(--g50);border:1px solid var(--g200);border-radius:var(--r-md);padding:12px 16px;display:flex;gap:24px;flex-wrap:wrap}
+.tl-data-item{font-size:11px}
+.tl-data-label{color:var(--g400);font-size:9px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
+.tl-data-val{font-weight:700;color:var(--black)}
+.timeline-empty{background:var(--white);border:1.5px dashed var(--g200);border-radius:var(--r-lg);padding:48px 32px;text-align:center}
+.timeline-empty-icon{font-size:28px;margin-bottom:10px}
+.timeline-empty-title{font-size:13px;font-weight:700;color:var(--black);margin-bottom:6px}
+.timeline-empty-desc{font-size:11px;color:var(--g400);max-width:420px;margin:0 auto;line-height:1.6}
+
+/* ── TABLE ── */
+.table-search{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.search-box{padding:7px 14px;border-radius:var(--r-sm);border:1px solid var(--g200);font-family:'Poppins',sans-serif;font-size:11px;color:var(--black);outline:none;width:220px;margin-left:auto}
+.search-box:focus{border-color:var(--yellow)}
+.table-wrap{background:var(--white);border:1px solid var(--g200);border-radius:var(--r-lg);overflow:hidden}
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:11px}
+thead tr{background:var(--black)}
+thead th{padding:11px 13px;text-align:left;font-size:9px;font-weight:700;color:var(--white);text-transform:uppercase;letter-spacing:.08em;white-space:nowrap;cursor:pointer;user-select:none;transition:.15s}
+thead th:hover{background:#222;color:var(--yellow)}
+thead th.sorted-asc::after{content:' ↑'}
+thead th.sorted-desc::after{content:' ↓'}
+thead th.center{text-align:center}
+thead th.nosort{cursor:default}
+thead th.nosort:hover{background:var(--black);color:#fff}
+tbody tr{border-bottom:1px solid var(--g100);transition:.12s}
+tbody tr:hover{background:#FAFAFA}
+.total-row td{background:var(--black);color:var(--white);font-weight:700;padding:11px 13px}
+.total-row .yel{color:var(--yellow)}
+td{padding:10px 13px;color:var(--black)}
+td.center{text-align:center}
+td.prog-name{font-weight:600}
+.inv-bar-wrap{display:flex;align-items:center;gap:8px}
+.inv-bar-track{width:56px;flex-shrink:0;background:var(--g100);border-radius:3px;height:5px}
+.inv-bar{height:5px;border-radius:3px;background:var(--yellow);min-width:2px}
+.inv-bar-wrap span{font-size:10px;font-weight:600;white-space:nowrap}
+.badge{padding:2px 8px;border-radius:20px;font-size:9px;font-weight:700;display:inline-block}
+.dash{color:var(--g400)}
+.month-row{cursor:pointer}
+.month-row:hover{background:#FAFAFA}
+.expand-arrow{display:inline-block;transition:.2s;font-size:9px;color:var(--g400);margin-right:6px}
+.month-row.open .expand-arrow{transform:rotate(90deg)}
+.month-detail-row td{background:var(--g50);padding:0}
+.month-detail-row.hidden{display:none}
+.month-detail-inner{padding:8px 13px 8px 34px;font-size:10px;color:var(--g600);display:flex;gap:20px;flex-wrap:wrap}
+.month-detail-tag{padding:2px 8px;border-radius:20px;font-weight:700;font-size:9px}
+
+/* ── PDF LOADING OVERLAY ── */
+#pdf-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:16px}
+#pdf-overlay.active{display:flex}
+.pdf-spinner{width:44px;height:44px;border:3px solid #333;border-top-color:var(--yellow);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pdf-msg{color:var(--white);font-size:13px;font-weight:600}
+
+@media print{
+  .sidebar,.topbar,.sb-pdf-btn,#pdf-overlay{display:none!important}
+  .main{margin-left:0}
+  .report-section{opacity:1!important;transform:none!important;break-inside:avoid}
+  .hero{break-inside:avoid}
+}
+@media(max-width:1200px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .two-col,.canal-grid,.qual-compare{grid-template-columns:1fr}
+  .mod-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div id="pdf-overlay">
+  <div class="pdf-spinner"></div>
+  <div class="pdf-msg">Generando PDF...</div>
+</div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-mark">EIA</div>
+    <div><div class="sb-brand">EIA</div><div class="sb-sub">Portal de Reportes · ADCOM</div></div>
+  </div>
+  <div class="sb-client">
+    <div class="sb-client-label">Cliente</div>
+    <div class="sb-client-name">Universidad EIA</div>
+  </div>
+
+  <!-- PREGRADO -->
+  <div class="sb-level open active" id="lvl-pregrado">
+    <div class="sb-level-header" onclick="switchLevel('pregrado')">
+      <div>
+        <div class="sb-level-title">Pregrado</div>
+        <div class="sb-level-period">1 feb 2026 → hoy</div>
+      </div>
+      <span class="sb-level-arrow">›</span>
+    </div>
+    <div class="sb-level-items">
+      <div class="sb-item active" data-level="pregrado" data-target="pre-resumen"><span class="sb-item-dot"></span>Resumen General</div>
+      <div class="sb-item" data-level="pregrado" data-target="pre-canal"><span class="sb-item-dot"></span>Rendimiento por Canal</div>
+      <div class="sb-item" data-level="pregrado" data-target="pre-evolucion"><span class="sb-item-dot"></span>Evolución Diaria</div>
+      <div class="sb-item" data-level="pregrado" data-target="pre-semanal"><span class="sb-item-dot"></span>Semana a Semana</div>
+      <div class="sb-item" data-level="pregrado" data-target="pre-calidad"><span class="sb-item-dot"></span>Calidad de Leads (IA)</div>
+      <div class="sb-item" data-level="pregrado" data-target="pre-branding"><span class="sb-item-dot"></span>Inversión en Branding</div>
+      <div class="sb-item" data-level="pregrado" data-target="pre-eventos"><span class="sb-item-dot"></span>Inversión en Eventos</div>
+      <div class="sb-item" data-level="pregrado" data-target="pre-mensual"><span class="sb-item-dot"></span>Inversión Mes a Mes</div>
+      <div class="sb-item" data-level="pregrado" data-target="pre-programas"><span class="sb-item-dot"></span>Tabla de Programas</div>
+      <div class="sb-item" data-level="pregrado" data-target="pre-timeline"><span class="sb-item-dot"></span>Línea de Tiempo</div>
+    </div>
+  </div>
+
+  <div class="sb-divider"></div>
+
+  <!-- POSGRADO -->
+  <div class="sb-level" id="lvl-posgrado">
+    <div class="sb-level-header" onclick="switchLevel('posgrado')">
+      <div>
+        <div class="sb-level-title">Posgrado</div>
+        <div class="sb-level-period">21 may 2026 → hoy</div>
+      </div>
+      <span class="sb-level-arrow">›</span>
+    </div>
+    <div class="sb-level-items">
+      <div class="sb-item" data-level="posgrado" data-target="pos-resumen"><span class="sb-item-dot"></span>Resumen General</div>
+      <div class="sb-item" data-level="posgrado" data-target="pos-canal"><span class="sb-item-dot"></span>Rendimiento por Canal</div>
+      <div class="sb-item" data-level="posgrado" data-target="pos-evolucion"><span class="sb-item-dot"></span>Evolución Diaria</div>
+      <div class="sb-item" data-level="posgrado" data-target="pos-semanal"><span class="sb-item-dot"></span>Semana a Semana</div>
+      <div class="sb-item" data-level="posgrado" data-target="pos-calidad"><span class="sb-item-dot"></span>Diversificación y Volumen</div>
+      <div class="sb-item" data-level="posgrado" data-target="pos-mensual"><span class="sb-item-dot"></span>Inversión Mes a Mes</div>
+      <div class="sb-item" data-level="posgrado" data-target="pos-programas"><span class="sb-item-dot"></span>Tabla de Programas</div>
+      <div class="sb-item" data-level="posgrado" data-target="pos-timeline"><span class="sb-item-dot"></span>Línea de Tiempo</div>
+    </div>
+  </div>
+
+  <button class="sb-pdf-btn" onclick="exportPDF()">
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 1v8M3 6l3.5 3.5L10 6M1 11h11"/></svg>
+    Descargar Reporte PDF
+  </button>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-crumb">EIA</span>
+      <span class="topbar-sep">›</span>
+      <span class="topbar-title" id="current-level-name">Pregrado</span>
+      <span class="topbar-sep">›</span>
+      <span class="topbar-title" id="current-section-name">Resumen General</span>
+    </div>
+    <div class="topbar-period" id="current-period">Facebook + Google · Meta CRM</div>
+  </div>
+
+  <div class="content" id="content-root"></div>
+</main>
+
+<script>
+const DATA = {"preDaily":[["2026-02-01",739881,739881,0,131,5648],["2026-02-02",702957,702957,0,129,5449],["2026-02-03",643643,643643,0,124,5191],["2026-02-04",649145,649145,0,103,6302],["2026-02-05",649018,649018,0,149,4356],["2026-02-06",610938,610938,0,115,5313],["2026-02-07",639227,639227,0,132,4843],["2026-02-08",749125,749125,0,143,5239],["2026-02-09",678624,678624,0,130,5220],["2026-02-10",632937,632937,0,104,6086],["2026-02-11",617803,617803,0,105,5884],["2026-02-12",606095,606095,0,111,5460],["2026-02-13",617049,617049,0,108,5713],["2026-02-14",601045,601045,0,123,4887],["2026-02-15",729644,729644,0,120,6080],["2026-02-16",654740,654740,0,110,5952],["2026-02-17",649897,649897,0,107,6074],["2026-02-18",503321,503321,0,98,5136],["2026-02-19",192727,192727,0,40,4818],["2026-02-20",189957,189957,0,41,4633],["2026-02-21",184799,184799,0,33,5600],["2026-02-22",223589,223589,0,45,4969],["2026-02-23",213371,213371,0,47,4540],["2026-02-24",202094,202094,0,33,6124],["2026-02-25",195061,195061,0,36,5418],["2026-02-26",186325,186325,0,38,4903],["2026-02-27",195735,195735,0,34,5757],["2026-02-28",180667,180667,0,45,4015],["2026-03-01",240195,240195,0,60,4003],["2026-03-02",192480,192480,0,48,4010],["2026-03-03",217225,217225,0,31,7007],["2026-03-04",200649,200649,0,25,8026],["2026-03-05",182784,182784,0,37,4940],["2026-03-06",182948,182948,0,40,4574],["2026-03-07",180521,180521,0,27,6686],["2026-03-08",231198,231198,0,30,7707],["2026-03-09",213929,213929,0,37,5782],["2026-03-10",200105,200105,0,32,6253],["2026-03-11",192033,192033,0,41,4684],["2026-03-12",201986,201986,0,36,5611],["2026-03-13",177301,177301,0,23,7709],["2026-03-14",180793,180793,0,24,7533],["2026-03-15",229467,229467,0,34,6749],["2026-03-16",214435,214435,0,40,5361],["2026-03-17",209355,209355,0,39,5368],["2026-03-18",198560,198560,0,27,7354],["2026-03-19",182693,182693,0,36,5075],["2026-03-20",175124,175124,0,22,7960],["2026-03-21",185661,185661,0,27,6876],["2026-03-22",225381,225381,0,38,5931],["2026-03-23",207661,207661,0,39,5325],["2026-03-24",193871,193871,0,25,7755],["2026-03-25",209335,209335,0,41,5106],["2026-03-26",189600,189600,0,30,6320],["2026-03-27",190365,190365,0,34,5599],["2026-03-28",179785,179785,0,40,4495],["2026-03-29",219664,219664,0,36,6102],["2026-03-30",213881,213881,0,28,7639],["2026-03-31",207290,207290,0,34,6097],["2026-04-01",197183,197183,0,34,5800],["2026-04-02",183076,183076,0,39,4694],["2026-04-03",187606,187606,0,34,5518],["2026-04-04",183122,183122,0,23,7962],["2026-04-05",224228,224228,0,44,5096],["2026-04-06",208479,208479,0,52,4009],["2026-04-07",200979,200979,0,40,5024],["2026-04-08",213991,213991,0,40,5350],["2026-04-09",176600,176600,0,39,4528],["2026-04-10",186402,186402,0,37,5038],["2026-04-11",274828,274828,0,27,10179],["2026-04-12",232467,232467,0,36,6457],["2026-04-13",219074,219074,0,26,8426],["2026-04-14",259194,259194,0,28,9257],["2026-04-15",236433,236433,0,28,8444],["2026-04-16",210741,210741,0,36,5854],["2026-04-17",207191,207191,0,17,12188],["2026-04-18",202327,202327,0,30,6744],["2026-04-19",258400,258400,0,34,7600],["2026-04-20",243536,243536,0,27,9020],["2026-04-21",235144,235144,0,32,7348],["2026-04-22",229028,229028,0,52,4404],["2026-04-23",262187,262187,0,37,7086],["2026-04-24",186435,186435,0,20,9322],["2026-04-25",222833,222833,0,34,6554],["2026-04-26",302350,302350,0,40,7559],["2026-04-27",239874,239874,0,34,7055],["2026-04-28",238296,238296,0,23,10361],["2026-04-29",229579,229579,0,33,6957],["2026-04-30",279897,279897,0,34,8232],["2026-05-01",195224,195224,0,31,6298],["2026-05-02",190272,190272,0,17,11192],["2026-05-03",264156,264156,0,44,6004],["2026-05-04",253065,253065,0,38,6660],["2026-05-05",242781,242781,0,38,6389],["2026-05-06",265303,265303,0,30,8843],["2026-05-07",215703,215703,0,31,6958],["2026-05-08",214733,214733,0,25,8589],["2026-05-09",219436,219436,0,26,8440],["2026-05-10",258124,258124,0,26,9928],["2026-05-11",484115,484115,0,51,9492],["2026-05-12",713875,713875,0,71,10055],["2026-05-13",652635,652635,0,62,10526],["2026-05-14",745434,745434,0,77,9681],["2026-05-15",679309,679309,0,69,9845],["2026-05-16",668193,668193,0,56,11932],["2026-05-17",782831,782831,0,66,11861],["2026-05-18",780111,780111,0,58,13450],["2026-05-19",746207,746207,0,86,8677],["2026-05-20",612241,612241,0,38,16112],["2026-05-21",654963,654963,0,46,14238],["2026-05-22",712902,697039,15863,39.1,18242],["2026-05-23",744151,708587,35564,30,24805],["2026-05-24",776996,722909,54087,32,24281],["2026-05-25",775601,741125,34476,45.9,16912],["2026-05-26",777778,770481,7297,45,17284],["2026-05-27",806491,802309,4182,45,17922],["2026-05-28",723521,655535,67986,41,17647],["2026-05-29",777800,721069,56731,49,15873],["2026-05-30",605572,573167,32405,34,17811],["2026-05-31",842365,810947,31418,48,17549],["2026-06-01",805529,769317,36212,42.5,18954],["2026-06-02",749922,716923,32999,37.1,20197],["2026-06-03",768580,732806,35774,47.8,16077],["2026-06-04",670741,632732,38009,33,20325],["2026-06-05",655848,620504,35344,36.4,18036],["2026-06-06",729298,706417,22881,49,14884],["2026-06-07",857396,800495,56901,35,24497],["2026-06-08",748593,706153,42440,32,23394],["2026-06-09",751196,705767,45429,34.2,21992],["2026-06-10",737797,703366,34431,39,18918],["2026-06-11",715144,681290,33854,48.0,14899],["2026-06-12",687256,661040,26216,31.4,21904],["2026-06-13",741633,730280,11353,42.0,17658],["2026-06-14",787984,780843,7141,44,17909],["2026-06-15",825946,778402,47544,45.6,18121],["2026-06-16",807364,740523,66841,34.3,23522],["2026-06-17",639880,605105,34775,25.5,25093],["2026-06-18",634311,601323,32988,26,24397],["2026-06-19",619182,594750,24432,21,29485],["2026-06-20",647646,629189,18457,20,32382],["2026-06-21",741845,694982,46863,24.4,30420],["2026-06-22",723014,671273,51741,27,26778],["2026-06-23",618126,579474,38652,31,19940],["2026-06-24",589742,550874,38868,24,24573],["2026-06-25",622290,586193,36097,31,20074],["2026-06-26",541733,516241,25492,21,25797],["2026-06-27",516171,494700,21471,18,28676],["2026-06-28",503824,503296,528,26,19378],["2026-06-29",496102,496102,0,19,26111],["2026-06-30",465656,442196,23460,23,20246],["2026-07-01",324224,310846,13378,18,18012],["2026-07-02",250723,220490,30233,21.7,11557],["2026-07-03",268138,214989,53149,17.5,15332],["2026-07-04",236932,210793,26139,16.8,14107],["2026-07-05",295378,241069,54309,20.5,14409],["2026-07-06",0,0,0,0,null],["2026-07-07",0,0,0,0,null]],"posDaily":[["2026-05-01",0,0,0,0,null],["2026-05-02",0,0,0,0,null],["2026-05-03",0,0,0,0,null],["2026-05-04",0,0,0,0,null],["2026-05-05",0,0,0,0,null],["2026-05-06",0,0,0,0,null],["2026-05-07",0,0,0,0,null],["2026-05-08",0,0,0,0,null],["2026-05-09",0,0,0,0,null],["2026-05-10",0,0,0,0,null],["2026-05-11",0,0,0,0,null],["2026-05-12",0,0,0,0,null],["2026-05-13",0,0,0,0,null],["2026-05-14",0,0,0,0,null],["2026-05-15",0,0,0,0,null],["2026-05-16",0,0,0,0,null],["2026-05-17",0,0,0,0,null],["2026-05-18",0,0,0,0,null],["2026-05-19",0,0,0,0,null],["2026-05-20",0,0,0,0,null],["2026-05-21",247831,247831,0,5,49566],["2026-05-22",344646,337073,7573,7,49235],["2026-05-23",343900,312118,31782,3,114633],["2026-05-24",384268,346728,37540,6,64045],["2026-05-25",437957,363199,74758,5.8,75468],["2026-05-26",397551,356528,41023,5,79510],["2026-05-27",361184,350469,10715,6,60197],["2026-05-28",379259,316763,62496,4,94815],["2026-05-29",312316,277133,35183,4,78079],["2026-05-30",278695,240402,38293,6,46449],["2026-05-31",366516,332087,34429,9,40724],["2026-06-01",361301,321676,39625,1.5,240868],["2026-06-02",362740,325973,36767,6,60457],["2026-06-03",340127,301476,38651,6.2,55039],["2026-06-04",316090,273518,42572,4,79023],["2026-06-05",859934,552026,307908,3,286645],["2026-06-06",771768,557060,214708,2,385884],["2026-06-07",1092679,751079,341600,5,218536],["2026-06-08",1031860,686298,345562,4.7,218366],["2026-06-09",1107428,662274,445154,5.5,201350],["2026-06-10",480346,372293,108053,7,68621],["2026-06-11",329860,154085,175775,2,164930],["2026-06-12",250411,128356,122055,1,250411],["2026-06-13",235930,118728,117202,2,117965],["2026-06-14",296648,177186,119462,4,74162],["2026-06-15",285996,171319,114677,3.9,73616],["2026-06-16",262225,162987,99238,5.3,49254],["2026-06-17",257306,151819,105487,1.5,171537],["2026-06-18",284364,151788,132576,2,142182],["2026-06-19",365928,200042,165886,2,182964],["2026-06-20",299893,166921,132972,1,299893],["2026-06-21",465258,257856,207402,5,93052],["2026-06-22",555970,314367,241603,7.2,77182],["2026-06-23",554299,317572,236727,9,61589],["2026-06-24",618400,295136,323264,3,206133],["2026-06-25",524696,299430,225266,6.4,82408],["2026-06-26",553084,259519,293565,5,110617],["2026-06-27",379453,221741,157712,4.4,87046],["2026-06-28",345194,337781,7413,1,345194],["2026-06-29",346591,346591,0,2,173296],["2026-06-30",579149,319868,259281,8.7,66670],["2026-07-01",502398,313162,189236,4,125599],["2026-07-02",473690,272200,201490,5,94738],["2026-07-03",611234,267671,343563,1,611234],["2026-07-04",507475,228426,279049,2.4,212384],["2026-07-05",581840,363790,218050,6.5,89514],["2026-07-06",0,0,0,0,null],["2026-07-07",0,0,0,0,null]],"preTable":[{"programa":"Campaña General","inv":11407282,"fb":9922872,"gg":1484410,"leads":1097.54,"cpl":10393,"matr_pauta":0,"matr_org":0,"presupuesto":4050104,"cumpl_presu":281.7},{"programa":"Medicina","inv":9477452,"fb":9477452,"gg":0,"leads":1616,"cpl":5865,"matr_pauta":11,"matr_org":70,"presupuesto":6075156,"cumpl_presu":156.0},{"programa":"Ingeniería de Sistemas y Computación","inv":4532313,"fb":4532313,"gg":0,"leads":602,"cpl":7529,"matr_pauta":2,"matr_org":14,"presupuesto":3375087,"cumpl_presu":134.3},{"programa":"Ingeniería Administrativa","inv":3261903,"fb":3261903,"gg":0,"leads":216,"cpl":15101,"matr_pauta":1,"matr_org":48,"presupuesto":4725121,"cumpl_presu":69.0},{"programa":"Ingeniería Civil","inv":3259560,"fb":3259560,"gg":0,"leads":305,"cpl":10687,"matr_pauta":1,"matr_org":10,"presupuesto":3375087,"cumpl_presu":96.6},{"programa":"Ingeniería Biomédica","inv":3047425,"fb":3047425,"gg":0,"leads":277,"cpl":11002,"matr_pauta":0,"matr_org":4,"presupuesto":6075156,"cumpl_presu":50.2},{"programa":"Ingeniería Ambiental","inv":3008211,"fb":3008211,"gg":0,"leads":344,"cpl":8745,"matr_pauta":0,"matr_org":1,"presupuesto":675017,"cumpl_presu":445.6},{"programa":"Ciencia de Datos","inv":3004577,"fb":3004577,"gg":0,"leads":223,"cpl":13473,"matr_pauta":0,"matr_org":13,"presupuesto":4050104,"cumpl_presu":74.2},{"programa":"Ingeniería Biotecnológica","inv":2977505,"fb":2977505,"gg":0,"leads":188,"cpl":15838,"matr_pauta":1,"matr_org":11,"presupuesto":4050104,"cumpl_presu":73.5},{"programa":"Ingeniería Industrial","inv":2948442,"fb":2948442,"gg":0,"leads":188,"cpl":15683,"matr_pauta":1,"matr_org":7,"presupuesto":3375087,"cumpl_presu":87.4},{"programa":"Ingeniería Mecatrónica","inv":2914560,"fb":2914560,"gg":0,"leads":197,"cpl":14795,"matr_pauta":2,"matr_org":15,"presupuesto":3375087,"cumpl_presu":86.4},{"programa":"Economía","inv":2834087,"fb":2834087,"gg":0,"leads":210,"cpl":13496,"matr_pauta":0,"matr_org":4,"presupuesto":2025052,"cumpl_presu":140.0},{"programa":"Física","inv":2730970,"fb":2730970,"gg":0,"leads":190,"cpl":14374,"matr_pauta":0,"matr_org":1,"presupuesto":6075156,"cumpl_presu":45.0},{"programa":"Nutrición y Dietética","inv":2693861,"fb":2693861,"gg":0,"leads":252,"cpl":10690,"matr_pauta":0,"matr_org":5,"presupuesto":4050104,"cumpl_presu":66.5},{"programa":"Ingeniería Mecánica","inv":2588591,"fb":2588591,"gg":0,"leads":282,"cpl":9179,"matr_pauta":0,"matr_org":13,"presupuesto":3375087,"cumpl_presu":76.7},{"programa":"Ingeniería Financiera","inv":2568393,"fb":2568393,"gg":0,"leads":259,"cpl":9917,"matr_pauta":3,"matr_org":35,"presupuesto":3375087,"cumpl_presu":76.1},{"programa":"Becas Pregrados","inv":2499069,"fb":2499069,"gg":0,"leads":616,"cpl":4057,"matr_pauta":0,"matr_org":0,"presupuesto":675017,"cumpl_presu":370.2}],"posTable":[{"programa":"Campaña General","inv":4761185,"fb":989630,"gg":3771555,"leads":30.15,"cpl":157918,"matr_pauta":0,"matr_org":0,"presupuesto":6250000,"cumpl_presu":76.2},{"programa":"Maestría en Analítica y Ciencia de Datos","inv":2983617,"fb":1947314,"gg":1036303,"leads":34.23,"cpl":87162,"matr_pauta":0,"matr_org":22,"presupuesto":2250000,"cumpl_presu":132.6},{"programa":"Maestría en Administración","inv":1981669,"fb":1981669,"gg":0,"leads":13,"cpl":152436,"matr_pauta":0,"matr_org":5,"presupuesto":2250000,"cumpl_presu":88.1},{"programa":"Especialización en Inteligencia Artificial","inv":1880850,"fb":1880850,"gg":0,"leads":27,"cpl":69661,"matr_pauta":0,"matr_org":5,"presupuesto":2500000,"cumpl_presu":75.2},{"programa":"Especialización en Analítica y Ciencia de Datos","inv":1752480,"fb":1752480,"gg":0,"leads":23,"cpl":76195,"matr_pauta":0,"matr_org":0,"presupuesto":2500000,"cumpl_presu":70.1},{"programa":"Maestría en Finanzas","inv":1659411,"fb":1659411,"gg":0,"leads":15,"cpl":110627,"matr_pauta":0,"matr_org":6,"presupuesto":2500000,"cumpl_presu":66.4},{"programa":"Especialización en Finanzas Corporativas","inv":1318675,"fb":1318675,"gg":0,"leads":14,"cpl":94191,"matr_pauta":0,"matr_org":6,"presupuesto":2250000,"cumpl_presu":58.6},{"programa":"Especialización en Gerencia de Proyectos","inv":1138736,"fb":1138736,"gg":0,"leads":8,"cpl":142342,"matr_pauta":0,"matr_org":5,"presupuesto":2250000,"cumpl_presu":50.6},{"programa":"Finanzas","inv":1033802,"fb":0,"gg":1033802,"leads":14.82,"cpl":69755,"matr_pauta":0,"matr_org":0,"presupuesto":null,"cumpl_presu":null},{"programa":"Especialización en Gestión y Procesos Urbanos","inv":652151,"fb":337044,"gg":315107,"leads":6.35,"cpl":102781,"matr_pauta":0,"matr_org":1,"presupuesto":null,"cumpl_presu":null},{"programa":"Especialización en Energías Alternativas","inv":650318,"fb":338478,"gg":311840,"leads":7,"cpl":92903,"matr_pauta":0,"matr_org":0,"presupuesto":null,"cumpl_presu":null},{"programa":"Maestría en Ingeniería Biomédica","inv":631969,"fb":337234,"gg":294735,"leads":7.38,"cpl":85663,"matr_pauta":0,"matr_org":0,"presupuesto":null,"cumpl_presu":null},{"programa":"Maestría en Ingeniería","inv":600824,"fb":600824,"gg":0,"leads":1,"cpl":600824,"matr_pauta":0,"matr_org":1,"presupuesto":2250000,"cumpl_presu":26.7}],"preWeekly":[{"week":"2026-01-26","inv":739881,"fb":739881,"gg":0,"leads":131,"cpl":5648},{"week":"2026-02-02","inv":4644053,"fb":4644053,"gg":0,"leads":895,"cpl":5189},{"week":"2026-02-09","inv":4483197,"fb":4483197,"gg":0,"leads":801,"cpl":5597},{"week":"2026-02-16","inv":2599030,"fb":2599030,"gg":0,"leads":474,"cpl":5483},{"week":"2026-02-23","inv":1413448,"fb":1413448,"gg":0,"leads":293,"cpl":4824},{"week":"2026-03-02","inv":1387805,"fb":1387805,"gg":0,"leads":238,"cpl":5831},{"week":"2026-03-09","inv":1395614,"fb":1395614,"gg":0,"leads":227,"cpl":6148},{"week":"2026-03-16","inv":1391209,"fb":1391209,"gg":0,"leads":229,"cpl":6075},{"week":"2026-03-23","inv":1390281,"fb":1390281,"gg":0,"leads":245,"cpl":5675},{"week":"2026-03-30","inv":1396386,"fb":1396386,"gg":0,"leads":236,"cpl":5917},{"week":"2026-04-06","inv":1493746,"fb":1493746,"gg":0,"leads":271,"cpl":5512},{"week":"2026-04-13","inv":1593360,"fb":1593360,"gg":0,"leads":199,"cpl":8007},{"week":"2026-04-20","inv":1681513,"fb":1681513,"gg":0,"leads":242,"cpl":6948},{"week":"2026-04-27","inv":1637298,"fb":1637298,"gg":0,"leads":216,"cpl":7580},{"week":"2026-05-04","inv":1669145,"fb":1669145,"gg":0,"leads":214,"cpl":7800},{"week":"2026-05-11","inv":4726392,"fb":4726392,"gg":0,"leads":452,"cpl":10457},{"week":"2026-05-18","inv":5027572,"fb":4922057,"gg":105515,"leads":329.1,"cpl":15278},{"week":"2026-05-25","inv":5309127,"fb":5074633,"gg":234494,"leads":307.9,"cpl":17245},{"week":"2026-06-01","inv":5237314,"fb":4979194,"gg":258120,"leads":280.8,"cpl":18651},{"week":"2026-06-08","inv":5169603,"fb":4968739,"gg":200864,"leads":270.5,"cpl":19109},{"week":"2026-06-15","inv":4916174,"fb":4644274,"gg":271900,"leads":196.8,"cpl":24982},{"week":"2026-06-22","inv":4114899,"fb":3902051,"gg":212848,"leads":178,"cpl":23117},{"week":"2026-06-29","inv":2337153,"fb":2136485,"gg":200668,"leads":136.5,"cpl":17125}],"posWeekly":[{"week":"2026-05-18","inv":1320645,"fb":1243750,"gg":76895,"leads":21,"cpl":62888},{"week":"2026-05-25","inv":2533478,"fb":2236581,"gg":296897,"leads":39.8,"cpl":63650},{"week":"2026-06-01","inv":4104640,"fb":3082808,"gg":1021832,"leads":27.7,"cpl":148291},{"week":"2026-06-08","inv":3732483,"fb":2299220,"gg":1433263,"leads":26.2,"cpl":142323},{"week":"2026-06-15","inv":2220969,"fb":1262732,"gg":958237,"leads":20.7,"cpl":107247},{"week":"2026-06-22","inv":3531095,"fb":2045546,"gg":1485549,"leads":35.9,"cpl":98278},{"week":"2026-06-29","inv":3602376,"fb":2111708,"gg":1490668,"leads":29.6,"cpl":121800}],"preMonthly":[{"month":"2026-02","label":"Feb 2026","fb":13979666,"gg":0,"total":13979666,"breakdown":[{"mod":"Pregrado","fb":13639414,"gg":0,"total":13639414},{"mod":"Evento","fb":340252,"gg":0,"total":340252}]},{"month":"2026-03","label":"Mar 2026","fb":7909636,"gg":0,"total":7909636,"breakdown":[{"mod":"Pregrado","fb":6226275,"gg":0,"total":6226275},{"mod":"Evento","fb":459692,"gg":0,"total":459692},{"mod":"Branding","fb":1223669,"gg":0,"total":1223669}]},{"month":"2026-04","label":"Abr 2026","fb":9185824,"gg":400057,"total":9585881,"breakdown":[{"mod":"Pregrado","fb":6731480,"gg":0,"total":6731480},{"mod":"Branding","fb":2305423,"gg":400057,"total":2705480},{"mod":"Evento","fb":148921,"gg":0,"total":148921}]},{"month":"2026-05","label":"May 2026","fb":18387555,"gg":838326,"total":19225881,"breakdown":[{"mod":"Pregrado","fb":17041879,"gg":340009,"total":17381888},{"mod":"Branding","fb":1233547,"gg":498317,"total":1731864},{"mod":"Evento","fb":112129,"gg":0,"total":112129}]},{"month":"2026-06","label":"Jun 2026","fb":20661263,"gg":1115779,"total":21777042,"breakdown":[{"mod":"Pregrado","fb":19432556,"gg":967193,"total":20399749},{"mod":"Branding","fb":1228707,"gg":148586,"total":1377293}]},{"month":"2026-07","label":"Jul 2026","fb":1213044,"gg":179663,"total":1392707,"breakdown":[{"mod":"Pregrado","fb":1198187,"gg":177208,"total":1375395},{"mod":"Branding","fb":14857,"gg":2455,"total":17312}]}],"posMonthly":[{"month":"2026-05","label":"May 2026","fb":3480331,"gg":373792,"total":3854123,"breakdown":[{"mod":"Posgrado","fb":3480331,"gg":373792,"total":3854123}]},{"month":"2026-06","label":"Jun 2026","fb":9356765,"gg":5158162,"total":14514927,"breakdown":[{"mod":"Posgrado","fb":9356765,"gg":5158162,"total":14514927}]},{"month":"2026-07","label":"Jul 2026","fb":1445249,"gg":1231388,"total":2676637,"breakdown":[{"mod":"Posgrado","fb":1445249,"gg":1231388,"total":2676637}]}],"quality":{"pregrado_antes":{"n":4283,"perfilado_ia":37,"en_seguimiento_ia":279,"descartado_ia":1012,"descartado_manual":128,"nuevo":2797,"contesta_si":338,"contesta_no":1125},"pregrado_despues":{"n":1383,"perfilado_ia":44,"en_seguimiento_ia":419,"descartado_ia":424,"descartado_manual":27,"nuevo":444,"contesta_si":186,"contesta_no":788},"posgrado":{"n":137,"perfilado_ia":0,"en_seguimiento_ia":59,"descartado_ia":18,"descartado_manual":0,"nuevo":45,"contesta_si":0,"contesta_no":82}},"cplShift":{"pregrado":{"antes":{"desde":"2026-02-01","hasta":"2026-05-18","inv":34422469,"leads":5421.0,"cpl":6350,"dias":107,"inv_dia":321705,"leads_dia":50.7},"despues":{"desde":"2026-05-19","hasta":"2026-07-07","inv":31331732,"leads":1641.5,"cpl":19087,"dias":50,"inv_dia":626635,"leads_dia":32.8}}},"qualityPos":{"antes":{"n":74,"perfilado_ia":0,"en_seguimiento_ia":45,"descartado_ia":1,"otro":28},"despues":{"n":63,"perfilado_ia":0,"en_seguimiento_ia":14,"descartado_ia":17,"otro":32}},"cplShiftPos":{"antes":{"desde":"2026-05-21","hasta":"2026-06-10","inv":10578396,"leads":105.7,"cpl":100072,"fb":8284004,"gg":2294392},"despues":{"desde":"2026-06-11","hasta":"2026-07-07","inv":10467290,"leads":95.2,"cpl":109933,"fb":5998341,"gg":4468949}},"brandingTable":[{"campana":"Campaña Tráfico Branding","fb":6006203,"gg":1049416,"total":7055619,"presu":8000000,"pct":88.2}],"eventosTable":[{"evento":"Debate-candidatos","fb":261392,"gg":0,"total":261392},{"evento":"Elecciones presidenciales","fb":200000,"gg":0,"total":200000},{"evento":"Jornada Matriculate","fb":199606,"gg":0,"total":199606},{"evento":"Perspectivas Economicas","fb":200000,"gg":0,"total":200000},{"evento":"Respira","fb":199996,"gg":0,"total":199996}]};// ══ STATIC KPI / NARRATIVE DATA ═══════════════════════════════════
+const LEVELS = {
+  pregrado: {
+    label: 'Pregrado', prefix:'pre',
+    period: 'Facebook + Google · 1 feb 2026 → hoy',
+    heroTitle: 'Pregrado',
+    heroSub: 'Facebook Ads + Google Ads · 17 programas · Campaña General, Medicina, Ingeniería...',
+    invTotal: 73870814, invTotalSub: 'Pregrado + Branding + Evento',
+    invModalidad: 65754201, fbTotal: 64269791, ggTotal: 1484410,
+    leadsPlataforma: 7063, cplPlataforma: 9310,
+    leadsCrmPauta: 5666, cplCrmPauta: 11605,
+    matrPauta: 22, matrOrg: 251,
+    presupuestoMeta: 75501735, cumplPresupuesto: 97.8,
+    since: '1 feb 2026',
+    hasModalidadBreakdown: true,
+    modalidad: [
+      {tag:'pregrado', label:'Pregrado', inv:65754201, sub:'Leads plat.: 7.063 · CPL: $9.310'},
+      {tag:'branding', label:'Branding', inv:7055619, sub:'Inversión en branding'},
+      {tag:'eventos', label:'Eventos', inv:1060994, sub:'Inversión en eventos'}
+    ],
+    canal: {
+      fb:{inv:64269791, leads:6949, cpl:9249, dias:155, sub:'B+E: $7.067.197', pct:97.7},
+      gg:{inv:1484410, leads:114, cpl:13021, dias:44, sub:'B+E: $1.049.416', pct:2.3}
+    },
+    hasBranding:true, hasEventos:true,
+    qualitySectionType: 'ia',
+    daily: DATA.preDaily, weekly: DATA.preWeekly, monthly: DATA.preMonthly,
+    table: DATA.preTable,
+    quality: {antes: DATA.quality.pregrado_antes, despues: DATA.quality.pregrado_despues}, cplShift: DATA.cplShift.pregrado,
+    weeklyCutoff: '2026-05-18', // week containing May 19
+    timeline: [
+      {
+        date:'Desde el lanzamiento', title:'Landing 100% conversión (pregrados.eia.edu.co)',
+        desc:'La Campaña General de Pregrado —única que corre en Google (100% del gasto de Google acá)— dirige todo su tráfico a la landing pregrados.eia.edu.co/inicio, enfocada 100% en conversión general. Trae volumen, pero a un CPL más alto que el blend del período.',
+        data:[
+          {label:'CPL Campaña General', val:'$10.393', delta:'+11.6% vs. blend', deltaType:'down'},
+          {label:'Leads capturados', val:'1.098'},
+          {label:'% del Google total', val:'100%'}
+        ]
+      },
+      {
+        date:'1 feb 2026', title:'Lanzamiento — formularios abiertos',
+        desc:'Arrancamos la campaña de Pregrado con formularios de Meta abiertos (sin preguntas condicionales), priorizando volumen de leads plataforma.',
+        data:[
+          {label:'CPL (1 feb–18 may)', val:'$6.350'},
+          {label:'Leads/día', val:'50,7'},
+          {label:'Perfilado IA', val:'0.9%'},
+          {label:'En seguimiento IA', val:'6.5%'}
+        ]
+      },
+      {
+        date:'19 may 2026', title:'Formularios condicionales',
+        desc:'A partir de esta fecha aplicamos preguntas condicionales en los formularios de Meta para filtrar mejor la calidad del prospecto antes de que entre al CRM. El CPL subió, pero también subió con fuerza la proporción de leads que la IA marca como perfilados o en seguimiento real.',
+        data:[
+          {label:'CPL (19 may–hoy)', val:'$19.087', delta:'+200.6%', deltaType:'down'},
+          {label:'Leads/día', val:'32,8', delta:'-35.3%', deltaType:'down'},
+          {label:'Perfilado IA', val:'3.2%', delta:'+270%', deltaType:'up'},
+          {label:'En seguimiento IA', val:'30.3%', delta:'+366%', deltaType:'up'}
+        ]
+      }
+    ]
+  },
+  posgrado: {
+    label: 'Posgrado', prefix:'pos',
+    period: 'Facebook + Google · 21 may 2026 → hoy',
+    heroTitle: 'Posgrado',
+    heroSub: 'Facebook Ads + Google Ads · 13 programas · Maestrías y Especializaciones EIA',
+    invTotal: 21045687, invTotalSub: 'Modalidad Posgrado',
+    invModalidad: 21045687, fbTotal: 14282345, ggTotal: 6763342,
+    leadsPlataforma: 201, cplPlataforma: 104741,
+    leadsCrmPauta: 137, cplCrmPauta: 153618,
+    matrPauta: 0, matrOrg: 59,
+    presupuestoMeta: 25000000, cumplPresupuesto: 84.2,
+    since: '21 may 2026',
+    hasModalidadBreakdown: false,
+    canal: {
+      fb:{inv:14282345, leads:157, cpl:90972, dias:46, sub:null, pct:67.9},
+      gg:{inv:6763342, leads:44, cpl:153712, dias:44, sub:null, pct:32.1}
+    },
+    hasBranding:false, hasEventos:false,
+    qualitySectionType: 'volume',
+    diversification: { programsBefore:8, programsAfter:13, leadsPctFb:78.1, leadsPctGg:21.9 },
+    daily: DATA.posDaily, weekly: DATA.posWeekly, monthly: DATA.posMonthly,
+    table: DATA.posTable,
+    quality: DATA.qualityPos, cplShift: DATA.cplShiftPos,
+    weeklyCutoff: '2026-06-08', // week containing June 11
+    timeline: [
+      {
+        date:'21 may 2026', title:'Lanzamiento — con condicionales desde el día 1',
+        desc:'Arrancamos la campaña de Posgrado ya con preguntas condicionales en los formularios (a diferencia de Pregrado, acá no hubo fase abierta), priorizando calidad desde el inicio. Solo Facebook.',
+        data:[
+          {label:'CPL día 1', val:'$49.566'},
+          {label:'Canal', val:'100% Facebook'}
+        ]
+      },
+      {
+        date:'22 may 2026', title:'Activación de Google Ads + landing de conversión (posgrados.eia.edu.co)',
+        desc:'Encendemos Google Ads con una sola campaña (Campaña General), que dirige su tráfico a la landing posgrados.eia.edu.co/inicio — enfocada 100% en conversión general. No podemos aislar en el CRM qué leads puntuales vinieron de esta landing (BD Leads no tiene un campo que la conecte con el nombre de campaña), pero sí vemos que Campaña General trae volumen a un CPL bastante más alto que el promedio del período.',
+        data:[
+          {label:'Campañas Google', val:'1 (Campaña General)'},
+          {label:'CPL Campaña General', val:'$157.918', delta:'+50.8% vs. blend', deltaType:'down'},
+          {label:'% del Google total (histórico)', val:'55.8%'}
+        ]
+      },
+      {
+        date:'11–22 jun 2026', title:'Expansión de portafolio en Google',
+        desc:'Ampliamos de 1 a 6 campañas de Google (Finanzas, Maestría Analítica, Biomédica, Gestión y Procesos Urbanos, Energías Alternas). El CPL subió apenas 9.8% y cubrimos más programas, aunque el ritmo diario de leads no creció.',
+        data:[
+          {label:'CPL antes (21may–10jun)', val:'$100.072'},
+          {label:'CPL después (11jun–hoy)', val:'$109.933', delta:'+9.8%', deltaType:'down'},
+          {label:'% inversión en Google', val:'21.7% → 42.7%'},
+          {label:'Programas activos', val:'8 → 13'}
+        ]
+      }
+    ]
+  }
+};
+
+let currentLevel = 'pregrado';
+const charts = {};
+
+// ══ HELPERS ═══════════════════════════════════════════════════════
+const fmtCOP = n => (n===null||n===undefined||isNaN(n)) ? '—' : '$'+Math.round(n).toLocaleString('es-CO');
+const fmtNUM = n => (n===null||n===undefined||isNaN(n)) ? '—' : Math.round(n).toLocaleString('es-CO');
+const fmtPCT = n => (n===null||n===undefined||isNaN(n)) ? '—' : n.toFixed(1)+'%';
+function cplColor(v, thresholds){ if(v===null) return 'var(--g400)'; return v<=thresholds[0]?'var(--green)':v<=thresholds[1]?'var(--amber)':'var(--red)'; }
+function cumplColor(v){ return v>=90?'var(--green)':v>=60?'var(--amber)':'var(--red)'; }
+function fmtDateShort(d){ const p=d.split('-'); const m=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']; return p[2]+' '+m[parseInt(p[1])-1]; }
+function pct(a,b){ return b>0 ? (a/b*100) : 0; }
+
+// ══ BUILD PAGE ════════════════════════════════════════════════════
+function buildPage(prefix, lvl){
+  const modBlock = lvl.hasModalidadBreakdown ? `
+    <div class="report-section" id="${prefix}-modalidad">
+      <div class="sec-header">
+        <div class="sec-eyebrow">01 — Desglose por Modalidad</div>
+        <div class="sec-title">Pregrado, Branding y Eventos</div>
+        <div class="sec-desc">La inversión total del período se reparte en estas 3 modalidades.</div>
+      </div>
+      <div class="mod-grid">
+        ${lvl.modalidad.map(m=>`
+        <div class="mod-card">
+          <span class="mod-tag ${m.tag}">${m.label}</span>
+          <div class="mod-val">${fmtCOP(m.inv)}</div>
+          <div class="mod-sub">${m.sub}</div>
+        </div>`).join('')}
+      </div>
+    </div>` : '';
+
+  const brandingBlock = lvl.hasBranding ? `
+    <div class="report-section" id="${prefix}-branding">
+      <div class="sec-header">
+        <div class="sec-eyebrow">Inversión en Branding</div>
+        <div class="sec-title">Campaña Tráfico Branding vs. Meta de Presupuesto</div>
+        <div class="sec-desc">Empuje a campañas de posicionamiento — 8 Semestres y La Mejor U.</div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th class="nosort">Campaña</th><th class="center nosort">Facebook</th><th class="center nosort">Google</th>
+            <th class="center nosort">Total Inv.</th><th class="center nosort">Meta Ppto.</th><th class="center nosort">% Ejec.</th>
+          </tr></thead>
+          <tbody>
+            ${DATA.brandingTable.map(r=>`
+            <tr>
+              <td class="prog-name">${r.campana}</td>
+              <td class="center" style="color:var(--fb);font-weight:700">${fmtCOP(r.fb)}</td>
+              <td class="center" style="color:var(--gg);font-weight:700">${fmtCOP(r.gg)}</td>
+              <td class="center" style="font-weight:700">${fmtCOP(r.total)}</td>
+              <td class="center">${fmtCOP(r.presu)}</td>
+              <td class="center"><span class="badge" style="background:${r.pct>=90?'var(--green-bg)':'var(--amber-bg)'};color:${r.pct>=90?'var(--green)':'var(--amber)'}">${r.pct}%</span></td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>` : '';
+
+  const qualityBlock = lvl.qualitySectionType === 'ia' ? `
+    <!-- CALIDAD DE LEADS IA -->
+    <div class="report-section" id="${prefix}-calidad">
+      <div class="sec-header">
+        <div class="sec-eyebrow">Calidad de Leads (IA)</div>
+        <div class="sec-title">Perfilamiento con IA — antes vs. después</div>
+        <div class="sec-desc">Campo "Detalle estado" en BD Leads · leads CRM de pauta.</div>
+      </div>
+      <div id="${prefix}-qual-cards"></div>
+    </div>` : `
+    <!-- DIVERSIFICACIÓN Y VOLUMEN -->
+    <div class="report-section" id="${prefix}-calidad">
+      <div class="sec-header">
+        <div class="sec-eyebrow">Diversificación de Canal y Volumen</div>
+        <div class="sec-title">Más programas, más canal, mismo ritmo de leads</div>
+        <div class="sec-desc">Desde que se activó Google (22 may) el ritmo diario de leads no subió, pero sí creció la cobertura: más programas con pauta activa y más peso de Google en la mezcla.</div>
+      </div>
+      <div class="mod-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="mod-card">
+          <span class="mod-tag pregrado">Programas Activos</span>
+          <div class="mod-val">${lvl.diversification.programsBefore} → ${lvl.diversification.programsAfter}</div>
+          <div class="mod-sub">Antes / después de activar Google</div>
+        </div>
+        <div class="mod-card">
+          <span class="mod-tag branding">% Inversión en Google</span>
+          <div class="mod-val">0% → 43%</div>
+          <div class="mod-sub">Activación (22 may) → hoy</div>
+        </div>
+        <div class="mod-card">
+          <span class="mod-tag eventos">Leads Plataforma por Canal</span>
+          <div class="mod-val" style="font-size:16px">Meta ${lvl.diversification.leadsPctFb}% · Google ${lvl.diversification.leadsPctGg}%</div>
+          <div class="mod-sub">${fmtNUM(lvl.canal.fb.leads)} + ${fmtNUM(lvl.canal.gg.leads)} = ${fmtNUM(lvl.canal.fb.leads+lvl.canal.gg.leads)} leads plataforma</div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title">Leads Plataforma por Semana</div>
+        <div class="chart-card-sub">Volumen semanal captado, acumulado desde el lanzamiento</div>
+        <div class="chart-wrap"><canvas id="${prefix}-chart-leadsweek"></canvas></div>
+      </div>
+    </div>`;
+
+  const eventosBlock = lvl.hasEventos ? `
+    <div class="report-section" id="${prefix}-eventos">
+      <div class="sec-header">
+        <div class="sec-eyebrow">Inversión en Eventos</div>
+        <div class="sec-title">Campañas puntuales de eventos</div>
+        <div class="sec-desc">5 eventos activados durante el período, 100% Facebook.</div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-scroll">
+        <table>
+          <thead><tr><th class="nosort">Evento</th><th class="center nosort">Facebook</th><th class="center nosort">Google</th><th class="center nosort">Total Inv.</th></tr></thead>
+          <tbody>
+            ${DATA.eventosTable.map(r=>`
+            <tr>
+              <td class="prog-name">${r.evento}</td>
+              <td class="center" style="color:var(--fb);font-weight:700">${fmtCOP(r.fb)}</td>
+              <td class="center">${r.gg>0?fmtCOP(r.gg):'<span class="dash">—</span>'}</td>
+              <td class="center" style="font-weight:700">${fmtCOP(r.total)}</td>
+            </tr>`).join('')}
+          </tbody>
+          <tfoot><tr class="total-row">
+            <td>TOTAL (${DATA.eventosTable.length} eventos)</td><td class="center">—</td><td class="center">—</td>
+            <td class="center"><span class="yel">${fmtCOP(DATA.eventosTable.reduce((a,r)=>a+r.total,0))}</span></td>
+          </tr></tfoot>
+        </table>
+        </div>
+      </div>
+    </div>` : '';
+
+  return `
+  <div class="report-page" id="page-${prefix}">
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-eyebrow"><span class="hero-pulse"></span>Reporte de Pauta Digital</div>
+      <h1>${lvl.heroTitle}</h1>
+      <div class="hero-sub">${lvl.heroSub}</div>
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="kpi-val">${fmtCOP(lvl.invTotal)}</div><div class="kpi-label">Inversión Total</div><div class="kpi-sub">${lvl.invTotalSub}</div></div>
+        <div class="kpi-card"><div class="kpi-val">${fmtNUM(lvl.leadsPlataforma)}</div><div class="kpi-label">Leads Plataforma</div><div class="kpi-sub">Col. Registros RG</div></div>
+        <div class="kpi-card"><div class="kpi-val">${fmtCOP(lvl.cplPlataforma)}</div><div class="kpi-label">CPL Plataforma</div><div class="kpi-sub">Inversión / Leads plataforma</div></div>
+        <div class="kpi-card"><div class="kpi-val">${fmtNUM(lvl.leadsCrmPauta)}</div><div class="kpi-label">Leads CRM — Pauta</div><div class="kpi-sub">Fuente=Pauta en BD Leads</div></div>
+        <div class="kpi-card"><div class="kpi-val">${fmtCOP(lvl.cplCrmPauta)}</div><div class="kpi-label">CPL CRM — Pauta</div><div class="kpi-sub">Inversión / Leads CRM pauta</div></div>
+        <div class="kpi-card"><div class="kpi-val">${fmtNUM(lvl.matrPauta)}</div><div class="kpi-label">Matrículas Pauta</div><div class="kpi-sub">Matriculado=1 + Fuente=Pauta</div></div>
+        <div class="kpi-card"><div class="kpi-val">${fmtNUM(lvl.matrOrg)}</div><div class="kpi-label">Matrículas Orgánico</div><div class="kpi-sub">Matriculado=1 + Fuente=Orgánico</div></div>
+        <div class="kpi-card">
+          <div class="kpi-val">${fmtPCT(lvl.cumplPresupuesto)}</div>
+          <div class="kpi-label">Cumpl. Presupuesto</div>
+          <div class="kpi-sub">Meta: ${fmtCOP(lvl.presupuestoMeta)}</div>
+          <div class="kpi-bar-mini"><div class="kpi-bar-mini-fill" style="width:${Math.min(lvl.cumplPresupuesto,100)}%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    ${modBlock}
+
+    <!-- RENDIMIENTO POR CANAL -->
+    <div class="report-section" id="${prefix}-canal">
+      <div class="sec-header">
+        <div class="sec-eyebrow">${lvl.hasModalidadBreakdown?'02':'01'} — Rendimiento por Canal</div>
+        <div class="sec-title">Facebook vs. Google</div>
+        <div class="sec-desc">Leads plataforma y CPL por canal, sobre la inversión de modalidad ${lvl.heroTitle} (${fmtCOP(lvl.invModalidad)}).</div>
+      </div>
+      <div class="canal-grid">
+        <div class="canal-card fb">
+          <div class="canal-head">
+            <div class="canal-icon fb">FB</div>
+            <div><div class="canal-name">Meta / Facebook</div><div class="canal-sub">Facebook &amp; Instagram Ads</div></div>
+          </div>
+          <div class="canal-metrics">
+            <div><div class="cm-label">Inversión</div><div class="cm-val">${fmtCOP(lvl.canal.fb.inv)}</div>${lvl.canal.fb.sub?`<div class="cm-sub">${lvl.canal.fb.sub}</div>`:''}<div class="cm-sub">${lvl.canal.fb.pct}% del total</div></div>
+            <div><div class="cm-label">Leads Plataforma</div><div class="cm-val">${fmtNUM(lvl.canal.fb.leads)}</div><div class="cm-val yel" style="font-size:11px;margin-top:4px">CPL: ${fmtCOP(lvl.canal.fb.cpl)}</div></div>
+            <div><div class="cm-label">Días Activos</div><div class="cm-val">${lvl.canal.fb.dias}</div></div>
+          </div>
+        </div>
+        <div class="canal-card gg">
+          <div class="canal-head">
+            <div class="canal-icon gg">GG</div>
+            <div><div class="canal-name">Google Ads</div><div class="canal-sub">Search + Display + YouTube</div></div>
+          </div>
+          <div class="canal-metrics">
+            <div><div class="cm-label">Inversión</div><div class="cm-val">${fmtCOP(lvl.canal.gg.inv)}</div>${lvl.canal.gg.sub?`<div class="cm-sub">${lvl.canal.gg.sub}</div>`:''}<div class="cm-sub">${lvl.canal.gg.pct}% del total</div></div>
+            <div><div class="cm-label">Leads Plataforma</div><div class="cm-val">${fmtNUM(lvl.canal.gg.leads)}</div><div class="cm-val yel" style="font-size:11px;margin-top:4px">CPL: ${fmtCOP(lvl.canal.gg.cpl)}</div></div>
+            <div><div class="cm-label">Días Activos</div><div class="cm-val">${lvl.canal.gg.dias}</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVOLUCIÓN DIARIA -->
+    <div class="report-section" id="${prefix}-evolucion">
+      <div class="sec-header">
+        <div class="sec-eyebrow">Evolución Diaria</div>
+        <div class="sec-title">Inversión, CPL y Leads día a día</div>
+        <div class="sec-desc">Desde ${lvl.since} hasta hoy · datos diarios sin agrupar.</div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title">Inversión por Día</div>
+        <div class="chart-card-sub">Facebook + Google, apilado</div>
+        <div class="legend">
+          <div class="leg-item"><div class="leg-dot" style="background:var(--fb)"></div>Facebook</div>
+          <div class="leg-item"><div class="leg-dot" style="background:var(--gg)"></div>Google</div>
+        </div>
+        <div class="chart-wrap"><canvas id="${prefix}-chart-inv"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title">Leads y CPL Plataforma por Día</div>
+        <div class="chart-card-sub">Barras = leads plataforma (izq.) · Línea = CPL (der.)</div>
+        <div class="chart-wrap"><canvas id="${prefix}-chart-cpl"></canvas></div>
+      </div>
+    </div>
+
+    <!-- SEMANA A SEMANA -->
+    <div class="report-section" id="${prefix}-semanal">
+      <div class="sec-header">
+        <div class="sec-eyebrow">Semana a Semana</div>
+        <div class="sec-title">Evolución semanal de inversión, leads y CPL</div>
+        <div class="sec-desc">Barras gris = antes del cambio de estrategia · Barras amarillas = después.</div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-wrap"><canvas id="${prefix}-chart-week"></canvas></div>
+      </div>
+    </div>
+
+    ${qualityBlock}
+
+    ${brandingBlock}
+    ${eventosBlock}
+
+    <!-- INVERSIÓN MES A MES -->
+    <div class="report-section" id="${prefix}-mensual">
+      <div class="sec-header">
+        <div class="sec-eyebrow">Inversión Mes a Mes</div>
+        <div class="sec-title">Inversión mensual por canal${lvl.hasModalidadBreakdown?' y modalidad':''}</div>
+        <div class="sec-desc">${lvl.hasModalidadBreakdown?'Clic en cada mes para ver el desglose por modalidad.':'Inversión mensual por canal.'}</div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-scroll">
+        <table>
+          <thead><tr><th class="nosort">Mes</th><th class="center nosort">Facebook</th><th class="center nosort">Google</th><th class="center nosort">Total</th></tr></thead>
+          <tbody id="${prefix}-monthly-tbody"></tbody>
+          <tfoot id="${prefix}-monthly-tfoot"></tfoot>
+        </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLA DE PROGRAMAS -->
+    <div class="report-section" id="${prefix}-programas">
+      <div class="sec-header">
+        <div class="sec-eyebrow">Tabla de Programas</div>
+        <div class="sec-title">Inversión, leads, CPL y matrículas por programa</div>
+        <div class="sec-desc">Clic en cualquier columna para ordenar · Cumpl. Presupuesto = inversión real / presupuesto meta del programa.</div>
+      </div>
+      <div class="table-search">
+        <input class="search-box" type="text" placeholder="Buscar programa..." oninput="filterProgTable('${prefix}', this.value)">
+      </div>
+      <div class="table-wrap">
+        <div class="table-scroll">
+        <table id="${prefix}-table">
+          <thead><tr>
+            <th onclick="sortProgTable('${prefix}',0,'str',this)">Programa</th>
+            <th onclick="sortProgTable('${prefix}',1,'num',this)">Inversión</th>
+            <th class="center" onclick="sortProgTable('${prefix}',2,'num',this)">Facebook</th>
+            <th class="center" onclick="sortProgTable('${prefix}',3,'num',this)">Google</th>
+            <th class="center" onclick="sortProgTable('${prefix}',4,'num',this)">Leads</th>
+            <th class="center" onclick="sortProgTable('${prefix}',5,'num',this)">CPL</th>
+            <th class="center" onclick="sortProgTable('${prefix}',6,'num',this)">Matr. Pauta</th>
+            <th class="center" onclick="sortProgTable('${prefix}',7,'num',this)">Matr. Orgánico</th>
+            <th class="center" onclick="sortProgTable('${prefix}',8,'num',this)">Cumpl. Presupuesto</th>
+          </tr></thead>
+          <tbody id="${prefix}-tbody"></tbody>
+          <tfoot id="${prefix}-tfoot"></tfoot>
+        </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- LÍNEA DE TIEMPO -->
+    <div class="report-section" id="${prefix}-timeline">
+      <div class="sec-header">
+        <div class="sec-eyebrow">Línea de Tiempo</div>
+        <div class="sec-title">Recorrido de acciones puntuales</div>
+        <div class="sec-desc">Hitos y ajustes realizados durante el período, con el dato que los respalda.</div>
+      </div>
+      <div class="timeline">
+        ${lvl.timeline.map(t=>`
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-date">${t.date}</div>
+          <div class="tl-title">${t.title}</div>
+          <div class="tl-desc">${t.desc}</div>
+          <div class="tl-data">
+            ${t.data.map(d=>`
+            <div class="tl-data-item">
+              <div class="tl-data-label">${d.label}</div>
+              <div class="tl-data-val">${d.val}${d.delta?`<span class="qual-delta ${d.deltaType==='up'?'up':'down'}">${d.delta}</span>`:''}</div>
+            </div>`).join('')}
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>
+
+  </div>`;
+}
+
+// ══ QUALITY CARDS ═════════════════════════════════════════════════
+function renderQualityCards(prefix, lvl){
+  const cont = document.getElementById(prefix+'-qual-cards');
+  const q = lvl.quality;
+  const rowsFor = (obj) => {
+    const n = obj.n;
+    const rows = [];
+    if('perfilado_ia' in obj) rows.push(['Perfilado IA', obj.perfilado_ia]);
+    if('en_seguimiento_ia' in obj) rows.push(['En seguimiento IA', obj.en_seguimiento_ia]);
+    if('descartado_ia' in obj) rows.push(['Descartado IA', obj.descartado_ia]);
+    if('descartado_manual' in obj) rows.push(['Descartado manual', obj.descartado_manual]);
+    if('otro' in obj) rows.push(['Otro / sin gestionar', obj.otro]);
+    if('nuevo' in obj) rows.push(['Lead nuevo (sin gestionar)', obj.nuevo]);
+    return rows.map(([label,val])=>`
+      <div class="qual-row"><span class="qual-row-label">${label}</span><span class="qual-row-val">${fmtPCT(pct(val,n))} <span style="color:var(--g400);font-weight:400">(${val})</span></span></div>`
+    ).join('');
+  };
+  const labelBefore = prefix==='pre' ? 'Antes · 1 feb – 18 may' : 'Antes · 21 may – 10 jun';
+  const labelAfter = prefix==='pre' ? 'Después · 19 may – hoy' : 'Después · 11 jun – hoy';
+  cont.innerHTML = `
+    <div class="qual-compare">
+      <div class="qual-card before">
+        <div class="qual-period">${labelBefore}</div>
+        <div class="qual-n">n = ${q.antes.n} leads CRM de pauta</div>
+        ${rowsFor(q.antes)}
+      </div>
+      <div class="qual-card after">
+        <div class="qual-period">${labelAfter}</div>
+        <div class="qual-n">n = ${q.despues.n} leads CRM de pauta</div>
+        ${rowsFor(q.despues)}
+      </div>
+    </div>`;
+}
+
+// ══ MONTHLY TABLE (expandable) ════════════════════════════════════
+const modColors = {Pregrado:'#ede9fe', Branding:'#fef3c7', Evento:'#d1fae5', Posgrado:'#ede9fe'};
+const modTextColors = {Pregrado:'#7C3AED', Branding:'#B7891A', Evento:'#0D9488', Posgrado:'#7C3AED'};
+
+function renderMonthlyTable(prefix, lvl){
+  const tbody = document.getElementById(prefix+'-monthly-tbody');
+  tbody.innerHTML = '';
+  lvl.monthly.forEach((m,i)=>{
+    const rowId = prefix+'-month-'+i;
+    const tr = document.createElement('tr');
+    tr.className = 'month-row';
+    tr.onclick = () => toggleMonth(rowId);
+    tr.innerHTML = `<td><span class="expand-arrow">›</span>${m.label}</td>
+      <td class="center" style="color:var(--fb);font-weight:600">${m.fb>0?fmtCOP(m.fb):'<span class="dash">—</span>'}</td>
+      <td class="center" style="color:var(--gg);font-weight:600">${m.gg>0?fmtCOP(m.gg):'<span class="dash">—</span>'}</td>
+      <td class="center" style="font-weight:700">${fmtCOP(m.total)}</td>`;
+    tr.id = rowId+'-row';
+    tbody.appendChild(tr);
+    const detailTr = document.createElement('tr');
+    detailTr.className = 'month-detail-row hidden';
+    detailTr.id = rowId+'-detail';
+    detailTr.innerHTML = `<td colspan="4"><div class="month-detail-inner">
+      ${m.breakdown.map(b=>`<span><span class="month-detail-tag" style="background:${modColors[b.mod]||'#eee'};color:${modTextColors[b.mod]||'#333'}">${b.mod}</span> ${fmtCOP(b.total)}</span>`).join('')}
+    </div></td>`;
+    tbody.appendChild(detailTr);
+  });
+  const tfoot = document.getElementById(prefix+'-monthly-tfoot');
+  const tFb = lvl.monthly.reduce((a,m)=>a+m.fb,0);
+  const tGg = lvl.monthly.reduce((a,m)=>a+m.gg,0);
+  tfoot.innerHTML = `<tr class="total-row"><td>TOTAL</td>
+    <td class="center"><span class="yel">${fmtCOP(tFb)}</span></td>
+    <td class="center"><span class="yel">${fmtCOP(tGg)}</span></td>
+    <td class="center"><span class="yel">${fmtCOP(tFb+tGg)}</span></td></tr>`;
+}
+function toggleMonth(rowId){
+  const row = document.getElementById(rowId+'-row');
+  const detail = document.getElementById(rowId+'-detail');
+  row.classList.toggle('open');
+  detail.classList.toggle('hidden');
+}
+
+// ══ PROGRAM TABLE ═════════════════════════════════════════════════
+function renderProgTable(prefix, lvl, data){
+  const tbody = document.getElementById(prefix+'-tbody');
+  tbody.innerHTML = '';
+  const maxInv = Math.max(...lvl.table.map(r=>r.inv));
+  data.forEach(r=>{
+    const barW = (r.inv/maxInv*100).toFixed(1);
+    const cplT = prefix==='pre' ? [12000,17000] : [90000,140000];
+    const cumplTxt = r.cumpl_presu===null ? '<span class="dash">— sin meta</span>' :
+      `<span class="badge" style="background:${r.cumpl_presu>=90?'var(--green-bg)':r.cumpl_presu>=60?'var(--amber-bg)':'var(--red-bg)'};color:${cumplColor(r.cumpl_presu)}">${fmtPCT(r.cumpl_presu)}</span>`;
+    const tr = document.createElement('tr');
+    tr.innerHTML =
+      `<td class="prog-name">${r.programa}</td>`+
+      `<td><div class="inv-bar-wrap"><div class="inv-bar-track"><div class="inv-bar" style="width:${barW}%"></div></div><span>${fmtCOP(r.inv)}</span></div></td>`+
+      `<td class="center">${r.fb>0?fmtCOP(r.fb):'<span class="dash">—</span>'}</td>`+
+      `<td class="center">${r.gg>0?fmtCOP(r.gg):'<span class="dash">—</span>'}</td>`+
+      `<td class="center">${fmtNUM(r.leads)}</td>`+
+      `<td class="center"><span style="font-weight:700;color:${cplColor(r.cpl,cplT)}">${fmtCOP(r.cpl)}</span></td>`+
+      `<td class="center">${r.matr_pauta}</td>`+
+      `<td class="center">${r.matr_org}</td>`+
+      `<td class="center">${cumplTxt}</td>`;
+    tbody.appendChild(tr);
+  });
+  const tfoot = document.getElementById(prefix+'-tfoot');
+  const tInv = data.reduce((a,r)=>a+r.inv,0);
+  const tFb = data.reduce((a,r)=>a+r.fb,0);
+  const tGg = data.reduce((a,r)=>a+r.gg,0);
+  const tLeads = data.reduce((a,r)=>a+r.leads,0);
+  const tCpl = tLeads>0 ? tInv/tLeads : 0;
+  const tMp = data.reduce((a,r)=>a+r.matr_pauta,0);
+  const tMo = data.reduce((a,r)=>a+r.matr_org,0);
+  tfoot.innerHTML = `<tr class="total-row">
+    <td>TOTAL</td><td>${fmtCOP(tInv)}</td><td class="center">${fmtCOP(tFb)}</td><td class="center">${fmtCOP(tGg)}</td>
+    <td class="center">${fmtNUM(tLeads)}</td><td class="center"><span class="yel">${fmtCOP(tCpl)}</span></td>
+    <td class="center">${tMp}</td><td class="center">${tMo}</td><td class="center">—</td>
+  </tr>`;
+}
+
+let progSortState = {pre:{}, pos:{}};
+function sortProgTable(prefix, colIdx, type, th){
+  const key = colIdx;
+  progSortState[prefix][key] = !progSortState[prefix][key];
+  const asc = progSortState[prefix][key];
+  if(th){
+    th.closest('thead').querySelectorAll('th').forEach(h=>h.classList.remove('sorted-asc','sorted-desc'));
+    th.classList.add(asc?'sorted-asc':'sorted-desc');
+  }
+  const lvl = LEVELS[currentLevel];
+  const fields = ['programa','inv','fb','gg','leads','cpl','matr_pauta','matr_org','cumpl_presu'];
+  const field = fields[colIdx];
+  const sorted = [...lvl.table].sort((a,b)=>{
+    let va = a[field], vb = b[field];
+    if(va===null) va = -1; if(vb===null) vb = -1;
+    if(type==='str'){ va=String(va).toLowerCase(); vb=String(vb).toLowerCase(); return asc?(va>vb?1:-1):(va<vb?1:-1); }
+    return asc ? (va-vb) : (vb-va);
+  });
+  renderProgTable(prefix, lvl, sorted);
+}
+function filterProgTable(prefix, val){
+  const lvl = LEVELS[currentLevel];
+  const filtered = val ? lvl.table.filter(r=>r.programa.toLowerCase().includes(val.toLowerCase())) : lvl.table;
+  renderProgTable(prefix, lvl, filtered);
+}
+
+// ══ CHARTS ════════════════════════════════════════════════════════
+function destroyCharts(prefix){
+  ['inv','cpl','week','leadsweek'].forEach(k=>{
+    const id = prefix+'-chart-'+k;
+    if(charts[id]){ charts[id].destroy(); delete charts[id]; }
+  });
+}
+
+function buildLeadsWeekChart(prefix, lvl){
+  const canvas = document.getElementById(prefix+'-chart-leadsweek');
+  if(!canvas) return;
+  const labels = lvl.weekly.map(w=>fmtDateShort(w.week));
+  const leads = lvl.weekly.map(w=>w.leads);
+  charts[prefix+'-chart-leadsweek'] = new Chart(canvas, {
+    type:'bar',
+    data:{ labels, datasets:[
+      {label:'Leads Plataforma', data:leads, backgroundColor:'#FFC000'}
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c => 'Leads: '+fmtNUM(c.raw) } } },
+      scales:{
+        x:{ ticks:{ font:{size:9} }, grid:{display:false} },
+        y:{ ticks:{ font:{size:9} }, grid:{color:'#f0f0f0'} }
+      }
+    }
+  });
+}
+
+function buildInvChart(prefix, lvl){
+  const ctx = document.getElementById(prefix+'-chart-inv');
+  const labels = lvl.daily.map(d=>fmtDateShort(d[0]));
+  const fb = lvl.daily.map(d=>d[2]);
+  const gg = lvl.daily.map(d=>d[3]);
+  charts[prefix+'-chart-inv'] = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets:[
+      {label:'Facebook', data:fb, backgroundColor:'#1877F2', stack:'s'},
+      {label:'Google', data:gg, backgroundColor:'#EA4335', stack:'s'}
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c => c.dataset.label+': '+fmtCOP(c.raw) } } },
+      scales:{
+        x:{ stacked:true, ticks:{ maxTicksLimit:12, font:{size:9} }, grid:{display:false} },
+        y:{ stacked:true, ticks:{ font:{size:9}, callback:v=>'$'+(v/1000).toFixed(0)+'K' }, grid:{color:'#f0f0f0'} }
+      }
+    }
+  });
+}
+
+function buildCplChart(prefix, lvl){
+  const ctx = document.getElementById(prefix+'-chart-cpl');
+  const labels = lvl.daily.map(d=>fmtDateShort(d[0]));
+  const leads = lvl.daily.map(d=>d[4]);
+  const cpl = lvl.daily.map(d=>d[5]);
+  charts[prefix+'-chart-cpl'] = new Chart(ctx, {
+    data:{ labels, datasets:[
+      {type:'bar', label:'Leads', data:leads, backgroundColor:'#FFC000', yAxisID:'y', order:2},
+      {type:'line', label:'CPL', data:cpl, borderColor:'#0A0A0A', backgroundColor:'#0A0A0A', pointRadius:0, borderWidth:2, yAxisID:'y1', order:1, tension:.25, spanGaps:true}
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:true, position:'top', labels:{boxWidth:10,font:{size:10}}},
+        tooltip:{ callbacks:{ label: c => c.dataset.label==='CPL' ? 'CPL: '+fmtCOP(c.raw) : 'Leads: '+fmtNUM(c.raw) } } },
+      scales:{
+        x:{ ticks:{ maxTicksLimit:12, font:{size:9} }, grid:{display:false} },
+        y:{ position:'left', ticks:{ font:{size:9} }, grid:{color:'#f0f0f0'}, title:{display:true,text:'Leads',font:{size:9}} },
+        y1:{ position:'right', ticks:{ font:{size:9}, callback:v=>'$'+(v/1000).toFixed(0)+'K' }, grid:{display:false}, title:{display:true,text:'CPL',font:{size:9}} }
+      }
+    }
+  });
+}
+
+function buildWeekChart(prefix, lvl){
+  const ctx = document.getElementById(prefix+'-chart-week');
+  const labels = lvl.weekly.map(w=>fmtDateShort(w.week));
+  const inv = lvl.weekly.map(w=>w.inv);
+  const cpl = lvl.weekly.map(w=>w.cpl);
+  const colors = lvl.weekly.map(w => w.week < lvl.weeklyCutoff ? '#9E9E9E' : '#FFC000');
+  charts[prefix+'-chart-week'] = new Chart(ctx, {
+    data:{ labels, datasets:[
+      {type:'bar', label:'Inversión', data:inv, backgroundColor:colors, yAxisID:'y', order:2},
+      {type:'line', label:'CPL', data:cpl, borderColor:'#0A0A0A', backgroundColor:'#0A0A0A', pointRadius:3, borderWidth:2, yAxisID:'y1', order:1, tension:.25, spanGaps:true}
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:true, position:'top', labels:{boxWidth:10,font:{size:10}}},
+        tooltip:{ callbacks:{ label: c => c.dataset.label==='CPL' ? 'CPL: '+fmtCOP(c.raw) : 'Inversión: '+fmtCOP(c.raw) } } },
+      scales:{
+        x:{ ticks:{ font:{size:9} }, grid:{display:false} },
+        y:{ position:'left', ticks:{ font:{size:9}, callback:v=>'$'+(v/1e6).toFixed(1)+'M' }, grid:{color:'#f0f0f0'}, title:{display:true,text:'Inversión',font:{size:9}} },
+        y1:{ position:'right', ticks:{ font:{size:9}, callback:v=>'$'+(v/1000).toFixed(0)+'K' }, grid:{display:false}, title:{display:true,text:'CPL',font:{size:9}} }
+      }
+    }
+  });
+}
+
+// ══ SECTION REVEAL ════════════════════════════════════════════════
+const secObs = new IntersectionObserver(e=>{
+  e.forEach(x=>{ if(x.isIntersecting) x.target.classList.add('visible'); });
+},{threshold:0.05});
+
+// ══ LEVEL SWITCHING ═══════════════════════════════════════════════
+function switchLevel(level){
+  currentLevel = level;
+  document.querySelectorAll('.sb-level').forEach(l=>l.classList.remove('active','open'));
+  document.getElementById('lvl-'+level).classList.add('active','open');
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  const firstItem = document.querySelector(`.sb-item[data-level="${level}"]`);
+  if(firstItem) firstItem.classList.add('active');
+  document.querySelectorAll('.report-page').forEach(p=>p.classList.remove('active'));
+  const prefix = LEVELS[level].prefix;
+  document.getElementById('page-'+prefix).classList.add('active');
+  document.getElementById('current-level-name').textContent = LEVELS[level].label;
+  document.getElementById('current-period').textContent = LEVELS[level].period;
+  document.getElementById('current-section-name').textContent = 'Resumen General';
+  renderLevelContent(prefix, LEVELS[level]);
+  window.scrollTo({top:0, behavior:'instant'});
+}
+
+function renderLevelContent(prefix, lvl){
+  destroyCharts(prefix);
+  buildInvChart(prefix, lvl);
+  buildCplChart(prefix, lvl);
+  buildWeekChart(prefix, lvl);
+  if(lvl.qualitySectionType === 'ia'){
+    renderQualityCards(prefix, lvl);
+  } else {
+    buildLeadsWeekChart(prefix, lvl);
+  }
+  renderMonthlyTable(prefix, lvl);
+  renderProgTable(prefix, lvl, lvl.table);
+}
+
+// ══ SIDEBAR ITEM NAV ══════════════════════════════════════════════
+document.addEventListener('click', e=>{
+  const item = e.target.closest('.sb-item');
+  if(!item) return;
+  const level = item.dataset.level;
+  if(level !== currentLevel) switchLevel(level);
+  setTimeout(()=>{
+    const t = document.getElementById(item.dataset.target);
+    if(t) t.scrollIntoView({behavior:'smooth', block:'start'});
+  }, 60);
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  item.classList.add('active');
+});
+
+// ══ PDF EXPORT ════════════════════════════════════════════════════
+async function exportPDF(){
+  const overlay = document.getElementById('pdf-overlay');
+  overlay.classList.add('active');
+  try {
+    document.querySelectorAll('.report-section').forEach(s=>s.classList.add('visible'));
+    document.querySelectorAll('.month-detail-row').forEach(r=>r.classList.remove('hidden'));
+    const activePage = document.querySelector('.report-page.active');
+    const wrapper = document.createElement('div');
+    wrapper.style.cssText = 'position:fixed;top:0;left:-9999px;width:900px;background:#F8F8F8;padding:40px 48px;font-family:Poppins,sans-serif;box-sizing:border-box;';
+    const clone = activePage.cloneNode(true);
+    clone.style.display = 'block';
+    clone.querySelectorAll('.report-section').forEach(s=>{ s.style.opacity='1'; s.style.transform='none'; });
+    clone.querySelectorAll('.month-detail-row').forEach(r=>r.classList.remove('hidden'));
+    const canvases = activePage.querySelectorAll('canvas');
+    const cloneCanvases = clone.querySelectorAll('canvas');
+    canvases.forEach((c,i)=>{
+      const img = document.createElement('img');
+      img.src = c.toDataURL('image/png',1.0);
+      img.style.width='100%';
+      cloneCanvases[i].replaceWith(img);
+    });
+    wrapper.appendChild(clone);
+    document.body.appendChild(wrapper);
+    await new Promise(r=>setTimeout(r,300));
+
+    const canvas = await html2canvas(wrapper, { scale:2, useCORS:true, backgroundColor:'#F8F8F8', logging:false, width:wrapper.offsetWidth, height:wrapper.scrollHeight });
+    document.body.removeChild(wrapper);
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p','mm','a4');
+    const margin = 12;
+    const printW = 210 - margin*2;
+    const printH = 297 - margin*2;
+    const pxPerMm = canvas.width / printW;
+    const pageHeightPx = printH * pxPerMm;
+    let offsetPx = 0; let first = true;
+    while(offsetPx < canvas.height){
+      const slicePx = Math.min(pageHeightPx, canvas.height - offsetPx);
+      const pageCanvas = document.createElement('canvas');
+      pageCanvas.width = canvas.width; pageCanvas.height = Math.ceil(slicePx);
+      const c2 = pageCanvas.getContext('2d');
+      c2.fillStyle = '#F8F8F8'; c2.fillRect(0,0,pageCanvas.width,pageCanvas.height);
+      c2.drawImage(canvas,0,offsetPx,canvas.width,slicePx,0,0,canvas.width,slicePx);
+      if(!first) pdf.addPage();
+      pdf.addImage(pageCanvas.toDataURL('image/jpeg',0.92),'JPEG',margin,margin,printW,slicePx/pxPerMm);
+      offsetPx += slicePx; first = false;
+    }
+    pdf.save('EIA_Reporte_'+LEVELS[currentLevel].label+'.pdf');
+  } catch(err){ console.error(err); alert('Error generando PDF: '+err.message); }
+  overlay.classList.remove('active');
+}
+
+// ══ INIT ══════════════════════════════════════════════════════════
+document.getElementById('content-root').innerHTML =
+  buildPage('pre', LEVELS.pregrado) + buildPage('pos', LEVELS.posgrado);
+
+document.getElementById('page-pre').classList.add('active');
+document.querySelectorAll('.report-section').forEach(s=>secObs.observe(s));
+
+renderLevelContent('pre', LEVELS.pregrado);
+</script>
+</body>
+</html>
