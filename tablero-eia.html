@@ -256,6 +256,12 @@ tr.no-camp td.bold{font-style:normal;color:#666}
           <option value="Google">Google</option>
         </select>
       </div>
+      <div class="tf-group">
+        <label>Periodo (Metas)</label>
+        <select class="tf-select" id="f-periodo" onchange="onPeriodoChange()">
+          <option value="">Cargando...</option>
+        </select>
+      </div>
       <button class="btn-apply" onclick="applyFilters()">Aplicar</button>
       <button class="btn-reset" onclick="resetFilters()">Limpiar</button>
     </div>
@@ -424,11 +430,17 @@ const MESES_ES=['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','
 const fmtMes = s => { const p=s.split('-'); return p.length<2?s:(MESES_ES[parseInt(p[1])]||p[1])+' '+p[0]; };
 function pctClass(v){ return v>=80?'pct-good':v>=50?'pct-mid':'pct-low'; }
 
+let _firstLoad=true;
 function refreshData(){
   showLoading(true);
   let done=0; const TOTAL=4;
-  const safety=setTimeout(()=>{processAndRender();showLoading(false);},22000);
-  const done_=()=>{ if(++done===TOTAL){clearTimeout(safety);processAndRender();showLoading(false);} };
+  const finish=()=>{
+    if(_firstLoad){ _firstLoad=false; onPeriodoChange(); } // 1ra carga: sincroniza fechas con el periodo vigente
+    else processAndRender();
+    showLoading(false);
+  };
+  const safety=setTimeout(finish,22000);
+  const done_=()=>{ if(++done===TOTAL){clearTimeout(safety);finish();} };
   const stripH=(d,re)=>{ if(d.length&&re.test(String(d[0][0]||''))) d.shift(); return d; };
   const fetchCSV=(url,callback)=>{
     fetch(url,{cache:'no-store',headers:{'Cache-Control':'no-cache, no-store'}})
@@ -439,7 +451,53 @@ function refreshData(){
   fetchCSV(URL_RG(),    d=>{ RAW_RG=stripH(d,/date|fecha|camp/i);  done_(); });
   fetchCSV(URL_MAT(),   d=>{ RAW_MAT=stripH(d,/^id|nombre|admi/i); done_(); });
   fetchCSV(URL_LEADS(), d=>{ RAW_LEADS=stripH(d,/^id$/i);          done_(); });
-  fetchCSV(URL_METAS(), d=>{ RAW_METAS=stripH(d,/periodo|fecha/i); done_(); });
+  fetchCSV(URL_METAS(), d=>{ RAW_METAS=stripH(d,/periodo|fecha/i); populatePeriodoSelector(); done_(); });
+}
+
+function populatePeriodoSelector(){
+  const sel=$('f-periodo');
+  if(!sel) return;
+  const prevValue=sel.value;
+  // Lista única de periodos (columna A de METAS), en orden de aparición según Fecha Inicio
+  const rows=RAW_METAS.map(r=>({periodo:String(r[0]||'').trim(),ini:parseFecha(r[1]).full}))
+    .filter(r=>r.periodo);
+  const periodos=[...new Map(rows.map(r=>[r.periodo,r])).values()]
+    .sort((a,b)=>(a.ini||'').localeCompare(b.ini||''));
+  const vigente=periodoVigente(periodos);
+  sel.innerHTML='<option value="">Todos los periodos</option>'
+    + periodos.map(p=>`<option value="${p.periodo}">${p.periodo}</option>`).join('');
+  // Mantener selección previa si sigue existiendo; si no, usar el vigente/último
+  if(prevValue && periodos.some(p=>p.periodo===prevValue)) sel.value=prevValue;
+  else sel.value=vigente ? vigente.periodo : '';
+}
+
+function periodoVigente(periodos){
+  if(!periodos.length) return null;
+  const hoy=new Date().toISOString().slice(0,10);
+  const rows=RAW_METAS.map(r=>({periodo:String(r[0]||'').trim(),ini:parseFecha(r[1]).full,fin:parseFecha(r[2]).full}))
+    .filter(r=>r.periodo);
+  // Periodo cuyo rango de fechas cubre hoy
+  const enCurso=rows.find(r=>r.ini&&r.fin&&r.ini<=hoy&&hoy<=r.fin);
+  if(enCurso) return periodos.find(p=>p.periodo===enCurso.periodo);
+  // Si ninguno cubre hoy, usar el más reciente (último por Fecha Inicio)
+  return periodos[periodos.length-1];
+}
+
+function onPeriodoChange(){
+  const fP=$('f-periodo')?.value||'';
+  if(fP){
+    // Sincronizar el filtro de fecha con el rango del periodo elegido,
+    // para que inversión/leads/matrículas también reflejen ese periodo.
+    const rango=RAW_METAS.map(r=>({periodo:String(r[0]||'').trim(),ini:parseFecha(r[1]).full,fin:parseFecha(r[2]).full}))
+      .filter(r=>r.periodo===fP&&r.ini&&r.fin);
+    if(rango.length){
+      const iniMin=rango.reduce((a,r)=>a&&a<r.ini?a:r.ini,rango[0].ini);
+      const finMax=rango.reduce((a,r)=>a&&a>r.fin?a:r.fin,rango[0].fin);
+      $('f-desde').value=iniMin;
+      $('f-hasta').value=finMax;
+    }
+  }
+  processAndRender();
 }
 
 function processAndRender(){
@@ -460,14 +518,18 @@ function processAndRender(){
   })).filter(r=>r.fecha);
 
   const mat = RAW_MAT.map(r=>({
-    fecha:parseFecha(r[3]).full,fuente:String(r[12]||'').trim(),
-    tipo:String(r[52]||r[38]||'').trim(),
-    prog:String(r[35]||'').trim(),
-    fase:String(r[8]||'').trim(),
-    matriculado:parseInt(r[39])||0,adm:parseInt(r[40])||0,inscrito:parseInt(r[41])||0
+    fecha:parseFecha(r[2]).full,          // Hora de creación (Admisiones)
+    periodo:String(r[8]||'').trim(),      // Periodo de interés (Admisiones)
+    fuente:String(r[1]||'').trim(),       // Fuente de Posible Aspirante (Admisiones): Pauta/Orgánico
+    tipo:String(r[12]||'').trim(),        // Tipo de programa (Admisiones): Pregrado/Posgrado
+    prog:String(r[9]||'').trim(),         // Programa de interés (Admisiones)
+    matriculado:parseInt(r[13])||0,       // Matriculado
+    adm:parseInt(r[14])||0,               // Admitido no matriculado
+    inscrito:parseInt(r[15])||0           // Inscrito
   })).filter(r=>r.fecha);
 
   const metas = RAW_METAS.map(r=>({
+    periodo:String(r[0]||'').trim(),
     modal:String(r[3]||'').trim(),
     prog:String(r[4]||'').trim(),
     ppto:parseInv(r[6]),
@@ -477,13 +539,24 @@ function processAndRender(){
     fin:parseFecha(r[2]).full
   })).filter(r=>r.modal&&r.prog);
 
+  const fP=$('f-periodo')?.value||'';
+
   const inRange=(f)=>(!fD||f>=fD)&&(!fH||f<=fH);
   const rgF   = rg.filter(r=>inRange(r.fecha)&&(!fM||r.medio===fM));
   const leadsF= leads.filter(r=>inRange(r.fecha));
-  const matF  = mat.filter(r=>inRange(r.fecha));
-  const metasF= metas.filter(r=>(!fD||!r.fin||(fD<=r.fin))&&(!fH||!r.ini||(fH>=r.ini)));
+  // Matrículas: si hay Periodo seleccionado, filtrar por la columna "Periodo de
+  // interés" de cada registro (más preciso que la fecha de creación, porque un
+  // registro puede crearse antes/después del rango de fechas del periodo pero
+  // seguir perteneciendo a ese periodo). Sin periodo elegido, se usa la fecha.
+  const matF  = fP ? mat.filter(r=>r.periodo===fP) : mat.filter(r=>inRange(r.fecha));
+  // Metas: si hay un Periodo seleccionado, filtrar EXCLUSIVAMENTE por ese periodo
+  // (evita sumar 2026-2 + 2027-1 al mismo tiempo). Si no hay periodo elegido,
+  // se usa el solape de fechas como respaldo (comportamiento anterior).
+  const metasF= fP
+    ? metas.filter(r=>r.periodo===fP)
+    : metas.filter(r=>(!fD||!r.fin||(fD<=r.fin))&&(!fH||!r.ini||(fH>=r.ini)));
 
-  window._S={rg:rgF,leads:leadsF,mat:matF,metas:metasF,fD,fH,fM};
+  window._S={rg:rgF,leads:leadsF,mat:matF,metas:metasF,fD,fH,fM,fP};
 
   const allMeses=[...new Set(rgF.map(r=>r.mes))].sort();
   $('period-tag').textContent='📅 '+(fD||allMeses[0]||'—')+' → '+(fH||allMeses[allMeses.length-1]||'—');
@@ -771,7 +844,7 @@ function renderMetas(tab, modal, rgModal, lPauta, matPauta, metasAll){
     {l:'Presupuesto Meta',v:fmtCOP(totPpto),  s:'Total campaña',   cl:'accent',bar:mkBar(pI,'Ejecución presupuesto')},
     {l:'Meta Leads',      v:fmtNz(totLeadM),  s:'Total programas', cl:'',      bar:mkBar(pL,'Cumplimiento leads')},
     {l:'Meta Matrículas', v:fmtNz(totMatM),   s:'Total programas', cl:'',      bar:mkBar(pM,'Cumplimiento matrículas')},
-    {l:'Programas c/meta',v:String(metas.length),s:'Con presupuesto asignado',cl:'',bar:''},
+    {l:'Programas c/meta',v:String(metas.length),s:(window._S&&window._S.fP)?'Periodo: '+window._S.fP:'Con presupuesto asignado',cl:'',bar:''},
   ].map(k=>`<div class="kpi-card ${k.cl}">
     <div class="kpi-label">${k.l}</div>
     <div class="kpi-value">${k.v}</div>
@@ -1055,7 +1128,8 @@ function resetFilters(){
   document.getElementById('f-desde').value=h.getFullYear()+'-01-01';
   document.getElementById('f-hasta').value=h.getFullYear()+'-'+String(h.getMonth()+1).padStart(2,'0')+'-'+String(h.getDate()).padStart(2,'0');
   document.getElementById('f-medio').value='';
-  processAndRender();
+  populatePeriodoSelector();
+  onPeriodoChange();
 }
 function revealSections(){
   document.querySelectorAll('#tab-'+currentTab+' .section').forEach((el,i)=>{
