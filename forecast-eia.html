@@ -224,7 +224,15 @@ function parseCSV(text){
   }).filter(r=>Object.values(r).some(v=>v!==''&&v!==0));
 }
 
-// Convierte fecha (texto tipo "2/1/2026", "2026-02-01", número serial de Sheets) a "YYYY-MM" (con cero, para orden calendario)
+// Meses en español (abreviados y completos) → número de mes, para parsear "abr-26", "sept-26", etc.
+const MESES_ABBR_MAP = {
+  'ene':1,'feb':2,'mar':3,'abr':4,'may':5,'jun':6,'jul':7,'ago':8,
+  'sep':9,'sept':9,'set':9,'oct':10,'nov':11,'dic':12,
+  'enero':1,'febrero':2,'marzo':3,'abril':4,'mayo':5,'junio':6,'julio':7,
+  'agosto':8,'septiembre':9,'setiembre':9,'octubre':10,'noviembre':11,'diciembre':12,
+};
+
+// Convierte fecha (texto tipo "2/1/2026", "2026-02-01", "abr-26", número serial de Sheets) a "YYYY-MM" (con cero, para orden calendario)
 function toPeriodoStr(val){
   if(val==null||val==='') return '';
   if(typeof val==='number'){ // serial de Google Sheets
@@ -234,6 +242,15 @@ function toPeriodoStr(val){
   const s = String(val).trim();
   let m = s.match(/^(\d{4})-(\d{1,2})/); // 2026-02-01
   if(m) return m[1]+'-'+m[2].padStart(2,'0');
+  m = s.match(/^([a-záéíóúA-ZÁÉÍÓÚ]{3,10})\.?-\s*(\d{2,4})$/); // "abr-26", "sept-2026" (formato es-CO de Sheets)
+  if(m){
+    const mon = MESES_ABBR_MAP[m[1].toLowerCase()];
+    if(mon){
+      let yy = m[2];
+      if(yy.length===2) yy = (parseInt(yy,10)<70?'20':'19')+yy;
+      return yy+'-'+String(mon).padStart(2,'0');
+    }
+  }
   m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/); // 2/1/2026 (mes/día/año, formato US export)
   if(m) return m[3]+'-'+m[1].padStart(2,'0');
   return s;
