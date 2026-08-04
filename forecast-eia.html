@@ -623,6 +623,32 @@ function renderGeneral(){
     <div class="card"><div class="card-title">Mix de Medios — Distribución</div><div style="position:relative;height:200px"><canvas id="cDona"></canvas></div></div>
   </div>`;
   
+  // Distribución mensual (combina los meses de todos los periodos, en orden cronológico)
+  const mesAll=[...DATA.mensual].sort((a,b)=> a._periodo===b._periodo ? (a.MesKey||'').localeCompare(b.MesKey||'') : a._periodo.localeCompare(b._periodo));
+  if(mesAll.length){
+    html+=`<div class="sec-title"><div class="sec-tl">Distribución Mensual de Inversión</div><span class="sec-badge">Todos los periodos</span></div>
+    <div class="g2">
+      <div class="card"><div class="card-title">Inversión por Mes</div><div style="position:relative;height:200px"><canvas id="cMesGeneral"></canvas></div></div>
+      <div class="card"><div class="card-title">Pregrado vs Posgrado por Mes</div><div style="position:relative;height:200px"><canvas id="cMesNivGeneral"></canvas></div></div>
+    </div>`;
+    html+=`<div class="tbl-wrap" style="margin-bottom:1rem"><table class="tbl"><thead><tr>
+      <th>Periodo</th><th>Mes</th><th class="r">%</th><th class="r">Pregrado</th><th class="r">Posgrados</th>
+      <th class="r">Inv. Formal</th><th class="r">Branding</th><th class="r">TOTAL</th>
+    </tr></thead><tbody>`;
+    mesAll.forEach(r=>{
+      html+=`<tr><td>${r._periodo}</td><td><strong>${r.Mes}</strong></td><td class="r">${(r.Pct*100).toFixed(1)}%</td>
+        <td class="r">${fmtM(r.Pregrado)}</td><td class="r">${fmtM(r.Posgrados)}</td>
+        <td class="r">${fmtM(r.InversionFormal)}</td><td class="r">${fmtM(r.Branding)}</td>
+        <td class="r"><strong>${fmtM(r.Total)}</strong></td></tr>`;
+    });
+    const tMg={pre:sum(mesAll,'Pregrado'),pos:sum(mesAll,'Posgrados'),inv:sum(mesAll,'InversionFormal'),brd:sum(mesAll,'Branding'),tot:sum(mesAll,'Total')};
+    html+=`<tr class="tbl-grand"><td colspan="2">TOTAL</td><td class="r">—</td>
+      <td class="r">${fmtM(tMg.pre)}</td><td class="r">${fmtM(tMg.pos)}</td>
+      <td class="r">${fmtM(tMg.inv)}</td><td class="r">${fmtM(tMg.brd)}</td>
+      <td class="r">${fmtM(tMg.tot)}</td></tr>`;
+    html+='</tbody></table></div>';
+  }
+
   // Tabla medios x periodos
   html+=`<div class="sec-title"><div class="sec-tl">Inversión por Medio × Periodo</div></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>Medio</th>`;
   PERIODOS.forEach(p=>{html+=`<th class="r">${p}</th>`;});
@@ -653,6 +679,29 @@ function renderGeneral(){
   el.innerHTML=html;
   
   setTimeout(()=>{
+    if(mesAll.length){
+      destroyChart('cMesGeneral');
+      charts['cMesGeneral']=new Chart(document.getElementById('cMesGeneral'),{
+        type:'bar',
+        data:{labels:mesAll.map(r=>r.Mes+' ('+r._periodo+')'),datasets:[{label:'Total',data:mesAll.map(r=>r.Total),
+          backgroundColor:mesAll.map(r=>(PERIODO_COLOR[r._periodo]||'#FFC000')+'99'),
+          borderColor:mesAll.map(r=>PERIODO_COLOR[r._periodo]||'#FFC000'),borderWidth:2,borderRadius:5}]},
+        options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmtM(ctx.raw)}}},
+          scales:{x:{grid:{display:false},ticks:{font:{size:8}}},y:{grid:{color:'#F0EDE6'},ticks:{font:{size:9},callback:v=>fmtHero(v)}}}}
+      });
+      destroyChart('cMesNivGeneral');
+      charts['cMesNivGeneral']=new Chart(document.getElementById('cMesNivGeneral'),{
+        type:'bar',
+        data:{labels:mesAll.map(r=>r.Mes+' ('+r._periodo+')'),datasets:[
+          {label:'Pregrado',data:mesAll.map(r=>r.Pregrado),backgroundColor:'#1A4F8C99',borderColor:'#1A4F8C',borderWidth:2,borderRadius:4,stack:'s'},
+          {label:'Posgrado',data:mesAll.map(r=>r.Posgrados),backgroundColor:'#1E7B4C99',borderColor:'#1E7B4C',borderWidth:2,borderRadius:4,stack:'s'},
+        ]},
+        options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{labels:{font:{size:10}}},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmtM(ctx.raw)}`}}},
+          scales:{x:{grid:{display:false},ticks:{font:{size:8}}},y:{stacked:true,grid:{color:'#F0EDE6'},ticks:{font:{size:9},callback:v=>fmtHero(v)}}}}
+      });
+    }
     destroyChart('cPeriodos');
     charts['cPeriodos']=new Chart(document.getElementById('cPeriodos'),{
       type:'bar',
@@ -707,31 +756,6 @@ function renderPeriodo(periodo,key){
       <div class="pkpi"><div class="pkpi-val">${fmtHero(cpl)}</div><div class="pkpi-lbl">CPL</div></div>
     </div></div>`;
   
-  // Distribución mensual
-  if(mes.length){
-    html+=`<div class="sec-title"><div class="sec-tl">Distribución Mensual de Inversión</div></div>
-    <div class="g2">
-      <div class="card"><div class="card-title">Inversión por Mes</div><div style="position:relative;height:200px"><canvas id="cMes_${key}"></canvas></div></div>
-      <div class="card"><div class="card-title">Pregrado vs Posgrado por Mes</div><div style="position:relative;height:200px"><canvas id="cMesNiv_${key}"></canvas></div></div>
-    </div>`;
-    html+=`<div class="tbl-wrap" style="margin-bottom:1rem"><table class="tbl"><thead><tr>
-      <th>Mes</th><th class="r">%</th><th class="r">Pregrado</th><th class="r">Posgrados</th>
-      <th class="r">Inv. Formal</th><th class="r">Branding</th><th class="r">TOTAL</th>
-    </tr></thead><tbody>`;
-    mes.forEach(r=>{
-      html+=`<tr><td><strong>${r.Mes}</strong></td><td class="r">${(r.Pct*100).toFixed(1)}%</td>
-        <td class="r">${fmtM(r.Pregrado)}</td><td class="r">${fmtM(r.Posgrados)}</td>
-        <td class="r">${fmtM(r.InversionFormal)}</td><td class="r">${fmtM(r.Branding)}</td>
-        <td class="r"><strong>${fmtM(r.Total)}</strong></td></tr>`;
-    });
-    const tM={pre:sum(mes,'Pregrado'),pos:sum(mes,'Posgrados'),inv:sum(mes,'InversionFormal'),brd:sum(mes,'Branding'),tot:sum(mes,'Total')};
-    html+=`<tr class="tbl-grand"><td>TOTAL</td><td class="r">100%</td>
-      <td class="r">${fmtM(tM.pre)}</td><td class="r">${fmtM(tM.pos)}</td>
-      <td class="r">${fmtM(tM.inv)}</td><td class="r">${fmtM(tM.brd)}</td>
-      <td class="r">${fmtM(tM.tot)}</td></tr>`;
-    html+='</tbody></table></div>';
-  }
-  
   // Mix medios
   html+=`<div class="sec-title"><div class="sec-tl">Mix de Medios</div><span class="sec-badge">${periodo}</span></div>`;
   html+=buildMedioChips(med);
@@ -753,28 +777,6 @@ function renderPeriodo(periodo,key){
   document.getElementById('top10_'+key).innerHTML=buildTop10(periodo);
   
   setTimeout(()=>{
-    if(mes.length){
-      destroyChart('cMes_'+key);
-      charts['cMes_'+key]=new Chart(document.getElementById('cMes_'+key),{
-        type:'bar',
-        data:{labels:mes.map(r=>r.Mes),datasets:[{label:'Total',data:mes.map(r=>r.Total),
-          backgroundColor:color+'99',borderColor:color,borderWidth:2,borderRadius:5}]},
-        options:{responsive:true,maintainAspectRatio:false,
-          plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmtM(ctx.raw)}}},
-          scales:{x:{grid:{display:false},ticks:{font:{size:9}}},y:{grid:{color:'#F0EDE6'},ticks:{font:{size:9},callback:v=>fmtHero(v)}}}}
-      });
-      destroyChart('cMesNiv_'+key);
-      charts['cMesNiv_'+key]=new Chart(document.getElementById('cMesNiv_'+key),{
-        type:'bar',
-        data:{labels:mes.map(r=>r.Mes),datasets:[
-          {label:'Pregrado',data:mes.map(r=>r.Pregrado),backgroundColor:'#1A4F8C99',borderColor:'#1A4F8C',borderWidth:2,borderRadius:4,stack:'s'},
-          {label:'Posgrado',data:mes.map(r=>r.Posgrados),backgroundColor:'#1E7B4C99',borderColor:'#1E7B4C',borderWidth:2,borderRadius:4,stack:'s'},
-        ]},
-        options:{responsive:true,maintainAspectRatio:false,
-          plugins:{legend:{labels:{font:{size:10}}},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${fmtM(ctx.raw)}`}}},
-          scales:{x:{grid:{display:false},ticks:{font:{size:9}}},y:{stacked:true,grid:{color:'#F0EDE6'},ticks:{font:{size:9},callback:v=>fmtHero(v)}}}}
-      });
-    }
     destroyChart('cMedNiv_'+key);
     charts['cMedNiv_'+key]=new Chart(document.getElementById('cMedNiv_'+key),{
       type:'bar',
