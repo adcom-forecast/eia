@@ -196,7 +196,9 @@ window.addEventListener('load',()=>{
   updateHeroKPIs(null);
   renderGeneral();
   rendered['general']=true;
-  document.getElementById('lastUpd').textContent='Datos del Excel';
+  document.getElementById('lastUpd').textContent='Cargando datos de Sheets…';
+  // Carga automática desde Google Sheets al abrir el tablero
+  tryFetchSheets();
 });
 
 // ═══ CSV PARSER ═══
@@ -386,7 +388,8 @@ function tryFetchSheets(){
     document.getElementById('lastUpd').textContent='Act. '+new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
   })
   .catch(e=>{
-    alert('⚠️ Error al leer Sheets: '+e.message);
+    console.error('Error al leer Sheets:', e);
+    document.getElementById('lastUpd').textContent='⚠️ Sin conexión a Sheets (datos del Excel)';
   })
   .finally(()=>{ dot.classList.remove('spin'); btn.disabled=false; });
 }
